@@ -2,7 +2,7 @@
 
 Role Based Access Control with grouping
 
-travis markdown
+[![Build Status](https://travis-ci.org/rockbuzz/lara-rbac.svg?branch=master)](https://travis-ci.org/rockbuzz/lara-rbac)
 
 ## Requirements
 
