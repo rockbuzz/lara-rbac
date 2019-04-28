@@ -1,6 +1,6 @@
 # Lara RBAC
 
-Role Based Access Control with with grouping
+Role Based Access Control with grouping
 
 travis markdown
 
