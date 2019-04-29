@@ -44,6 +44,71 @@ class HasRoleTest extends TestCase
     /**
      * @test
      */
+    public function aUserHasRolesWithStringDivider()
+    {
+        $user = User::create([
+            'name' => 'name test',
+            'email' => 'user.test@email.com',
+            'password' => bcrypt(123456),
+        ]);
+
+        $group = 'Company A';
+
+        $permission = Role::create([
+            'name' => 'admin'
+        ]);
+
+        Role::create([
+            'name' => 'writer'
+        ]);
+
+        Role::create([
+            'name' => 'reader'
+        ]);
+
+        $user->attachRole($permission->id, $group);
+
+        $this->assertTrue($user->hasRole('admin|writer', $group));
+        $this->assertFalse($user->hasRole('writer|reader', $group));
+    }
+
+    /**
+     * @test
+     * @expectedException \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function itShouldReturnAnExceptionBecauseRoleNameDoesNotExist()
+    {
+        $user = User::create([
+            'name' => 'name test',
+            'email' => 'user.test@email.com',
+            'password' => bcrypt(123456),
+        ]);
+
+        $group = 'Company A';
+
+        $user->attachRole('admin', $group);
+    }
+
+    /**
+     * @test
+     * @expectedException \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function itShouldReturnAnExceptionBecauseRoleIdDoesNotExist()
+    {
+        $user = User::create([
+            'name' => 'name test',
+            'email' => 'user.test@email.com',
+            'password' => bcrypt(123456),
+        ]);
+
+        $group = 'Company A';
+
+        $user->attachRole(0, $group);
+    }
+
+    /**
+     * @test
+     */
     public function itShouldOnlyReturnARoleOfUser()
     {
         $user = User::create([

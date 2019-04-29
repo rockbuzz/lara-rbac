@@ -120,7 +120,8 @@ $adminRole->detachPermission($createPost, $group = 'group-a');
 ```php
 auth()->user()->hasRole('admin', $group = 'group-a');
 auth()->user()->hasAnyRole(['admin','writer'], $group = 'group-a');
-auth()->user()->hasPermission('update.user', $group = 'group-a');
+auth()->user()->hasPermission('update.post', $group = 'group-a');
+auth()->user()->hasPermission('update.post|delete.post', $group = 'group-a');
 auth()->user()->hasAnyPermission(['update.post','create.post'], $group = 'group-a');
 ```
 

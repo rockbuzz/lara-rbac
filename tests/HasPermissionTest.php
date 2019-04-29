@@ -50,6 +50,71 @@ class HasPermissionTest extends TestCase
     /**
      * @test
      */
+    public function aUserHasPermissionsWithStringDivider()
+    {
+        $user = User::create([
+            'name' => 'name test',
+            'email' => 'user.test@email.com',
+            'password' => bcrypt(123456),
+        ]);
+
+        $group = 'Company A';
+
+        $permission = Permission::create([
+            'name' => 'post.create'
+        ]);
+
+        Permission::create([
+            'name' => 'post.edit'
+        ]);
+
+        Permission::create([
+            'name' => 'post.delete'
+        ]);
+
+        $user->attachPermission($permission->id, $group);
+
+        $this->assertTrue($user->hasPermission('post.create|post.delete', $group));
+        $this->assertFalse($user->hasPermission('post.edit|post.delete', $group));
+    }
+
+    /**
+     * @test
+     * @expectedException \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function itShouldReturnAnExceptionBecausePermissionNameDoesNotExist()
+    {
+        $user = User::create([
+            'name' => 'name test',
+            'email' => 'user.test@email.com',
+            'password' => bcrypt(123456),
+        ]);
+
+        $group = 'Company A';
+
+        $user->attachPermission('create.post', $group);
+    }
+
+    /**
+     * @test
+     * @expectedException \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
+    public function itShouldReturnAnExceptionBecausePermissionIdDoesNotExist()
+    {
+        $user = User::create([
+            'name' => 'name test',
+            'email' => 'user.test@email.com',
+            'password' => bcrypt(123456),
+        ]);
+
+        $group = 'Company A';
+
+        $user->attachPermission(0, $group);
+    }
+
+    /**
+     * @test
+     */
     public function itShouldOnlyReturnAPermissionOfUser()
     {
         $user = User::create([

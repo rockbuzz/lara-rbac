@@ -2,6 +2,7 @@
 
 namespace Rockbuzz\LaraRbac\Contracts;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Rockbuzz\LaraRbac\Models\Permission;
 use Rockbuzz\LaraRbac\Models\Role;
@@ -15,11 +16,12 @@ interface User
     public function roles($group = null): BelongsToMany;
 
     /**
-     * @param Role $role
+     * @param Role|int $role
      * @param mixed|null $group
+     * @throws ModelNotFoundException
      * @return void
      */
-    public function attachRole(Role $role, $group = null);
+    public function attachRole($role, $group = null);
 
     /**
      * @param Role|string $role
@@ -49,11 +51,12 @@ interface User
     public function permissions($group = null): BelongsToMany;
 
     /**
-     * @param Permission $permission
+     * @param Permission|int $permission
      * @param mixed|null $group
+     * @throws ModelNotFoundException
      * @return void
      */
-    public function attachPermission(Permission $permission, $group = null);
+    public function attachPermission($permission, $group = null);
 
     /**
      * @param Permission[]|string[] $permissions

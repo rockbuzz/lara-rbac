@@ -2,6 +2,7 @@
 
 namespace Rockbuzz\LaraRbac\Traits;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Rockbuzz\LaraRbac\Models\Permission;
 
@@ -12,23 +13,25 @@ trait HasPermission
      */
     public function permissions($group = null): BelongsToMany
     {
-        $builder = $this->belongsToMany(config('rbac.models.permission'))
+        return $this->belongsToMany(config('rbac.models.permission'))
+            ->wherePivot('group', $group)
             ->withPivot('group');
-
-        if ($group) {
-            $builder->wherePivot('group', $group);
-        }
-
-        return $builder;
     }
 
     /**
      * @inheritdoc
      */
-    public function attachPermission(Permission $permission, $group = null)
+    public function attachPermission($permission, $group = null)
     {
-        if (! $this->hasPermission($permission, $group)) {
-            $this->permissions()->attach([$permission->id => ['group' => $group]]);
+        if ($permission instanceof Permission) {
+            $this->attachIfNotHasPermission($permission, $group);
+        } elseif (is_numeric($permission)) {
+            $this->attachIfNotHasPermission(Permission::findOrFail($permission), $group);
+        } else {
+            $this->attachIfNotHasPermission(
+                Permission::whereName($permission)->firstOrFail(),
+                $group
+            );
         }
     }
 
@@ -37,12 +40,9 @@ trait HasPermission
      */
     public function syncPermissions(array $permissions, $group = null)
     {
+        $this->permissions($group)->detach();
         foreach ($permissions as $permission) {
-            if ($permission instanceof Permission) {
-                $this->permissions()->sync([$permission->id => ['group' => $group]]);
-            } else {
-                $this->permissions()->sync([$permission => ['group' => $group]]);
-            }
+            $this->attachPermission($permission, $group);
         }
     }
 
@@ -62,11 +62,15 @@ trait HasPermission
             }
             return false;
         }
-        if ($this->permissions($group)->whereName($permission)->exists()) {
+        if (
+            $this->permissions($group)
+            ->whereIn('name', explode('|', $permission))
+            ->exists()
+        ) {
             return true;
         }
         foreach ($this->roles($group)->get() as $role) {
-            if ($role->permissions()->whereName($permission)->exists()) {
+            if ($role->permissions()->whereIn('name', explode('|', $permission))->exists()) {
                 return true;
             }
         }
@@ -98,6 +102,17 @@ trait HasPermission
                 $row = Permission::whereName($permission)->first();
                 $this->permissions($group)->detach($row->id);
             }
+        }
+    }
+
+    /**
+     * @param $permission
+     * @param $group
+     */
+    private function attachIfNotHasPermission($permission, $group)
+    {
+        if (!$this->hasPermission($permission, $group)) {
+            $this->permissions()->attach([$permission->id => ['group' => $group]]);
         }
     }
 }

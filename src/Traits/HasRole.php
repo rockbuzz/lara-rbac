@@ -12,23 +12,25 @@ trait HasRole
      */
     public function roles($group = null): BelongsToMany
     {
-        $builder = $this->belongsToMany(config('rbac.models.role'))
+        return $this->belongsToMany(config('rbac.models.role'))
+            ->wherePivot('group', $group)
             ->withPivot('group');
-
-        if ($group) {
-            $builder->wherePivot('group', $group);
-        }
-
-        return $builder;
     }
 
     /**
      * @inheritdoc
      */
-    public function attachRole(Role $role, $group = null)
+    public function attachRole($role, $group = null)
     {
-        if (! $this->hasRole($role, $group)) {
-            $this->roles()->attach([$role->id => ['group' => $group]]);
+        if ($role instanceof Role) {
+            $this->attachIfNotHasRole($role, $group);
+        } elseif (is_numeric($role)) {
+            $this->attachIfNotHasRole(Role::findOrFail($role), $group);
+        } else {
+            $this->attachIfNotHasRole(
+                Role::whereName($role)->firstOrFail(),
+                $group
+            );
         }
     }
 
@@ -40,7 +42,10 @@ trait HasRole
         if ($role instanceof Role) {
             return $this->roles($group)->whereName($role->name)->exists();
         }
-        return $this->roles($group)->whereName($role)->exists();
+
+        return $this->roles($group)
+            ->whereIn('name', explode('|', $role))
+            ->exists();
     }
 
     /**
@@ -68,6 +73,17 @@ trait HasRole
                 $row = Role::whereName($role)->first();
                 $this->roles($group)->detach($row->id);
             }
+        }
+    }
+
+    /**
+     * @param mixed $role
+     * @param mixed $group
+     */
+    private function attachIfNotHasRole($role, $group)
+    {
+        if (!$this->hasRole($role, $group)) {
+            $this->roles()->attach([$role->id => ['group' => $group]]);
         }
     }
 }
