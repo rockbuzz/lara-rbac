@@ -37,7 +37,7 @@ class CreateRbacTable extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedInteger('role_id');
             $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
-            $table->string('group')->nullable();
+            $table->string('group')->default(\Rockbuzz\LaraRbac\Contracts\Group::DEFAULT);
         });
 
         Schema::create('permission_user', function (Blueprint $table) {
@@ -45,7 +45,7 @@ class CreateRbacTable extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->unsignedInteger('permission_id');
             $table->foreign('permission_id')->references('id')->on('permissions')->onDelete('cascade');
-            $table->string('group')->nullable();
+            $table->string('group')->default(\Rockbuzz\LaraRbac\Contracts\Group::DEFAULT);
         });
     }
 

@@ -13,7 +13,7 @@ interface User
      * @param mixed|null $group
      * @return BelongsToMany
      */
-    public function roles($group = null): BelongsToMany;
+    public function roles($group = Group::DEFAULT): BelongsToMany;
 
     /**
      * @param Role|int $role
@@ -21,27 +21,27 @@ interface User
      * @throws ModelNotFoundException
      * @return void
      */
-    public function attachRole($role, $group = null);
+    public function attachRole($role, $group = Group::DEFAULT);
 
     /**
      * @param string $role
      * @param mixed|null $group
      * @return bool
      */
-    public function hasRole(string $role, $group = null): bool;
+    public function hasRole(string $role, $group = Group::DEFAULT): bool;
 
     /**
      * @param int[] $roles
      * @param mixed|null $group
      * @return void
      */
-    public function detachRole(array $roles, $group = null);
+    public function detachRole(array $roles, $group = Group::DEFAULT);
 
     /**
      * @param mixed|null $group
      * @return BelongsToMany
      */
-    public function permissions($group = null): BelongsToMany;
+    public function permissions($group = Group::DEFAULT): BelongsToMany;
 
     /**
      * @param Permission|int $permission
@@ -49,26 +49,26 @@ interface User
      * @throws ModelNotFoundException
      * @return void
      */
-    public function attachPermission($permission, $group = null);
+    public function attachPermission($permission, $group = Group::DEFAULT);
 
     /**
      * @param Permission[]|string[] $permissions
      * @param mixed|null $group
      * @return void
      */
-    public function syncPermissions(array $permissions, $group = null);
+    public function syncPermissions(array $permissions, $group = Group::DEFAULT);
 
     /**
      * @param string $permission
      * @param mixed|null $group
      * @return bool
      */
-    public function hasPermission(string $permission, $group = null): bool;
+    public function hasPermission(string $permission, $group = Group::DEFAULT): bool;
 
     /**
      * @param int[] $permissions
      * @param mixed|null $group
      * @return void
      */
-    public function detachPermission(array $permissions, $group = null);
+    public function detachPermission(array $permissions, $group = Group::DEFAULT);
 }

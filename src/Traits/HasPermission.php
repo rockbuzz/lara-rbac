@@ -2,8 +2,8 @@
 
 namespace Rockbuzz\LaraRbac\Traits;
 
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Rockbuzz\LaraRbac\Contracts\Group;
 use Rockbuzz\LaraRbac\Models\Permission;
 
 trait HasPermission
@@ -11,7 +11,7 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function permissions($group = null): BelongsToMany
+    public function permissions($group = Group::DEFAULT): BelongsToMany
     {
         return $this->belongsToMany(config('rbac.models.permission'))
             ->wherePivot('group', $group)
@@ -21,7 +21,7 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function attachPermission($permission, $group = null)
+    public function attachPermission($permission, $group = Group::DEFAULT)
     {
         if ($permission instanceof Permission) {
             $this->attachIfNotHasPermission($permission, $group);
@@ -33,7 +33,7 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function syncPermissions(array $permissions, $group = null)
+    public function syncPermissions(array $permissions, $group = Group::DEFAULT)
     {
         $this->permissions($group)->detach();
         foreach ($permissions as $permission) {
@@ -44,7 +44,7 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function hasPermission(string $permission, $group = null): bool
+    public function hasPermission(string $permission, $group = Group::DEFAULT): bool
     {
         if (
             $this->permissions($group)
@@ -64,7 +64,7 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function detachPermission(array $permissions, $group = null)
+    public function detachPermission(array $permissions, $group = Group::DEFAULT)
     {
         $this->permissions($group)->detach($permissions);
     }
