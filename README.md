@@ -70,10 +70,6 @@ $user->attachRole($adminRole->id, $group = 'group-name');
 #### Revoke role from user
 
 ```php
-$user->detachRole($adminRole, $group = 'group-name');
-```
-or
-```php
 $user->detachRole([$adminRole, $writerRole->id], $group = 'group-name');
 ```
 
