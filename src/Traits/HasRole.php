@@ -2,6 +2,7 @@
 
 namespace Rockbuzz\LaraRbac\Traits;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Rockbuzz\LaraRbac\Models\Role;
 
@@ -37,12 +38,8 @@ trait HasRole
     /**
      * @inheritdoc
      */
-    public function hasRole($role, $group = null): bool
+    public function hasRole(string $role, $group = null): bool
     {
-        if ($role instanceof Role) {
-            return $this->roles($group)->whereName($role->name)->exists();
-        }
-
         return $this->roles($group)
             ->whereIn('name', explode('|', $role))
             ->exists();
@@ -51,38 +48,18 @@ trait HasRole
     /**
      * @inheritdoc
      */
-    public function hasAnyRole(array $roles, $group = null): bool
+    public function detachRole(array $roles, $group = null)
     {
-        foreach ($roles as $role) {
-            if ($this->hasRole($role, $group)) {
-                return true;
-            }
-        }
-        return false;
+        $this->roles($group)->detach($roles);
     }
 
     /**
-     * @inheritdoc
-     */
-    public function detachRole($role, $group = null)
-    {
-        if ($this->hasRole($role, $group)) {
-            if ($role instanceof Role) {
-                $this->roles($group)->detach($role->id);
-            } else {
-                $row = Role::whereName($role)->first();
-                $this->roles($group)->detach($row->id);
-            }
-        }
-    }
-
-    /**
-     * @param mixed $role
+     * @param Role $role
      * @param mixed $group
      */
-    private function attachIfNotHasRole($role, $group)
+    private function attachIfNotHasRole(Role $role, $group)
     {
-        if (!$this->hasRole($role, $group)) {
+        if (!$this->hasRole($role->name, $group)) {
             $this->roles()->attach([$role->id => ['group' => $group]]);
         }
     }

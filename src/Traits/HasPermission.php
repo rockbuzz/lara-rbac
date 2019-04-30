@@ -25,13 +25,8 @@ trait HasPermission
     {
         if ($permission instanceof Permission) {
             $this->attachIfNotHasPermission($permission, $group);
-        } elseif (is_numeric($permission)) {
-            $this->attachIfNotHasPermission(Permission::findOrFail($permission), $group);
         } else {
-            $this->attachIfNotHasPermission(
-                Permission::whereName($permission)->firstOrFail(),
-                $group
-            );
+            $this->attachIfNotHasPermission(Permission::findOrFail($permission), $group);
         }
     }
 
@@ -49,19 +44,8 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function hasPermission($permission, $group = null): bool
+    public function hasPermission(string $permission, $group = null): bool
     {
-        if ($permission instanceof Permission) {
-            if ($this->permissions($group)->whereName($permission->name)->exists()) {
-                return true;
-            }
-            foreach ($this->roles($group)->get() as $role) {
-                if ($role->permissions()->whereName($permission->name)->exists()) {
-                    return true;
-                }
-            }
-            return false;
-        }
         if (
             $this->permissions($group)
             ->whereIn('name', explode('|', $permission))
@@ -80,38 +64,18 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function hasAnyPermission(array $permissions, $group = null): bool
+    public function detachPermission(array $permissions, $group = null)
     {
-        foreach ($permissions as $permission) {
-            if ($this->hasPermission($permission, $group)) {
-                return true;
-            }
-        }
-        return false;
+        $this->permissions($group)->detach($permissions);
     }
 
     /**
-     * @inheritdoc
-     */
-    public function detachPermission($permission, $group = null)
-    {
-        if ($this->hasPermission($permission, $group)) {
-            if ($permission instanceof Permission) {
-                $this->permissions($group)->detach($permission->id);
-            } else {
-                $row = Permission::whereName($permission)->first();
-                $this->permissions($group)->detach($row->id);
-            }
-        }
-    }
-
-    /**
-     * @param $permission
+     * @param Permission $permission
      * @param $group
      */
-    private function attachIfNotHasPermission($permission, $group)
+    private function attachIfNotHasPermission(Permission $permission, $group)
     {
-        if (!$this->hasPermission($permission, $group)) {
+        if (!$this->hasPermission($permission->name, $group)) {
             $this->permissions()->attach([$permission->id => ['group' => $group]]);
         }
     }

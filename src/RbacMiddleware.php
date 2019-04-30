@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class RbacMiddleware
 {
-    public function handle(Request $request, Closure $next, $level, $names)
+    public function handle(Request $request, Closure $next, string $level, string $names)
     {
         if (auth()->guest()) {
             throw new AuthenticationException();
@@ -19,21 +19,13 @@ class RbacMiddleware
         }
 
         if ('permission' === $level) {
-            if ($request->user()->hasAnyPermissions(
-                explode('|', $names),
-                $request->route('group'))
-            )
-            {
+            if ($request->user()->hasPermission($names, $request->route('group'))) {
                 return $next($request);
             }
         }
 
         if ('role' === $level) {
-            if ($request->user()->hasAnyRoles(
-                explode('|', $names),
-                $request->route('group'))
-            )
-            {
+            if ($request->user()->hasRole($names, $request->route('group'))) {
                 return $next($request);
             }
         }

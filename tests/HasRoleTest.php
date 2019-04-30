@@ -18,27 +18,32 @@ class HasRoleTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
-        $role = Role::create([
+        $roleSuper = Role::create([
+            'name' => 'super'
+        ]);
+
+        $roleAdmin = Role::create([
             'name' => 'admin'
         ]);
 
-        Role::create([
+        $roleWriter = Role::create([
             'name' => 'writer'
         ]);
 
-        $user->attachRole($role, $group);
+        $roleReader = Role::create([
+            'name' => 'reader'
+        ]);
 
-        $this->assertTrue($user->hasRole($role, $group));
-        $this->assertTrue($user->hasRole($role->name, $group));
-        $this->assertFalse($user->hasRole('writer', $group));
+        $user->attachRole($roleAdmin, $group);
+        $user->attachRole($roleWriter->id, $group);
+        $user->attachRole($roleReader, $group);
 
-        $this->assertTrue($user->hasAnyRole([$role], $group));
-        $this->assertTrue($user->hasAnyRole([$role->name], $group));
-        $this->assertFalse($user->hasAnyRole(['writer'], $group));
-        $this->assertTrue($user->hasAnyRole([$role, 'writer'], $group));
-        $this->assertTrue($user->hasAnyRole([$role->name, 'writer'], $group));
+        $this->assertTrue($user->hasRole($roleAdmin->name, $group));
+        $this->assertTrue($user->hasRole($roleWriter->name, $group));
+        $this->assertTrue($user->hasRole($roleReader->name, $group));
+        $this->assertFalse($user->hasRole($roleSuper->name, $group));
     }
 
     /**
@@ -52,7 +57,7 @@ class HasRoleTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $permission = Role::create([
             'name' => 'admin'
@@ -84,7 +89,7 @@ class HasRoleTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $user->attachRole('admin', $group);
     }
@@ -101,7 +106,7 @@ class HasRoleTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $user->attachRole(0, $group);
     }
@@ -117,7 +122,7 @@ class HasRoleTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $role = Role::create([
             'name' => 'admin'
@@ -140,48 +145,33 @@ class HasRoleTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $role = Role::create([
             'name' => 'admin'
         ]);
-
-        $user->attachRole($role, $group);
-        $user->detachRole($role, $group);
-
-        $this->assertFalse($user->hasRole($role, $group));
-    }
-
-    /**
-     * @test
-     */
-    public function aUserCanDetachRoleName()
-    {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
+        $roleWriter = Role::create([
+            'name' => 'writer'
+        ]);
+        $roleReader = Role::create([
+            'name' => 'reader'
+        ]);
+        $roleSuper = Role::create([
+            'name' => 'super'
         ]);
 
-        $group = 'Company A';
-        $groupB = 'Company B';
+        $user->attachRole($role->id, $group);
+        $user->attachRole($roleWriter->id, $group);
+        $user->attachRole($roleReader->id, $group);
+        $user->attachRole($roleSuper->id, 'group-name-other');
 
-        $role = Role::create([
-            'name' => 'post.create'
-        ]);
-        $roleDelete = Role::create([
-            'name' => 'post.delete'
-        ]);
+        $user->detachRole([$role->id, $roleWriter->id, $roleSuper->id], $group);
 
-        $user->attachRole($role, $group);
-        $user->attachRole($role, $groupB);
-        $user->attachRole($roleDelete, $group);
-
-        $user->detachRole($role->name, $group);
-
-        $this->assertFalse($user->hasRole($role, $group));
-        $this->assertTrue($user->hasRole($role, $groupB));
-        $this->assertTrue($user->hasRole($roleDelete, $group));
+        $this->assertFalse($user->hasRole($role->name, $group));
+        $this->assertFalse($user->hasRole($roleWriter->name, $group));
+        $this->assertTrue($user->hasRole($roleReader->name, $group));
+        $this->assertFalse($user->hasRole($roleSuper->name, $group));
+        $this->assertTrue($user->hasRole($roleSuper->name, 'group-name-other'));
     }
 
     /**
@@ -195,15 +185,21 @@ class HasRoleTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $role = Role::create([
             'name' => 'admin'
         ]);
 
-        $user->attachRole($role);
+        $roleWriter = Role::create([
+            'name' => 'writer'
+        ]);
 
-        $this->assertFalse($user->hasRole($role, $group));
-        $this->assertTrue($user->hasRole($role));
+        $user->attachRole($role);
+        $user->attachRole($roleWriter, $group);
+
+        $this->assertFalse($user->hasRole($role->name, $group));
+        $this->assertFalse($user->hasRole($roleWriter->name));
+        $this->assertTrue($user->hasRole($role->name));
     }
 }

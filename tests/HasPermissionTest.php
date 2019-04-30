@@ -19,32 +19,37 @@ class HasPermissionTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
-        $permission = Permission::create([
-            'name' => 'post.create'
+        $permissionReadPost = Permission::create([
+            'name' => 'post.read'
         ]);
 
-        $permissionD = Permission::create([
-            'name' => 'post.delete'
+        $permissionCreatePost = Permission::create([
+            'name' => 'create.post'
         ]);
 
-        $user->attachPermission($permission, $group);
+        $permissionUpdatePost = Permission::create([
+            'name' => 'update.post'
+        ]);
 
-        $this->assertTrue($user->hasPermission($permission, $group));
-        $this->assertTrue($user->hasPermission($permission->name, $group));
-        $this->assertFalse($user->hasPermission($permissionD->name, $group));
+        $permissionDeletePost = Permission::create([
+            'name' => 'delete.post'
+        ]);
 
-        $this->assertTrue($user->hasAnyPermission([$permission], $group));
-        $this->assertTrue($user->hasAnyPermission([$permission->name], $group));
-        $this->assertFalse($user->hasAnyPermission([$permissionD->name], $group));
-        $this->assertTrue($user->hasAnyPermission([$permission, $permissionD->name], $group));
-        $this->assertTrue($user->hasAnyPermission([$permission->name, $permissionD->name], $group));
+        $user->attachPermission($permissionReadPost, $group);
+        $user->attachPermission($permissionCreatePost->id, $group);
 
-        $user->syncPermissions([$permissionD], $group);
+        $this->assertTrue($user->hasPermission($permissionReadPost->name, $group));
+        $this->assertTrue($user->hasPermission($permissionCreatePost->name, $group));
+        $this->assertFalse($user->hasPermission($permissionUpdatePost, $group));
+        $this->assertFalse($user->hasPermission($permissionDeletePost->name, $group));
 
-        $this->assertFalse($user->hasPermission($permission->name, $group));
-        $this->assertTrue($user->hasPermission($permissionD->name, $group));
+        $user->syncPermissions([$permissionUpdatePost, $permissionDeletePost], $group);
+
+        $this->assertFalse($user->hasPermission($permissionReadPost->name, $group));
+        $this->assertTrue($user->hasPermission($permissionUpdatePost->name, $group));
+        $this->assertTrue($user->hasPermission($permissionDeletePost->name, $group));
     }
 
     /**
@@ -58,10 +63,10 @@ class HasPermissionTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $permission = Permission::create([
-            'name' => 'post.create'
+            'name' => 'create.post'
         ]);
 
         Permission::create([
@@ -74,7 +79,7 @@ class HasPermissionTest extends TestCase
 
         $user->attachPermission($permission->id, $group);
 
-        $this->assertTrue($user->hasPermission('post.create|post.delete', $group));
+        $this->assertTrue($user->hasPermission('create.post|post.delete', $group));
         $this->assertFalse($user->hasPermission('post.edit|post.delete', $group));
     }
 
@@ -82,7 +87,7 @@ class HasPermissionTest extends TestCase
      * @test
      * @expectedException \Illuminate\Database\Eloquent\ModelNotFoundException
      */
-    public function itShouldReturnAnExceptionBecausePermissionNameDoesNotExist()
+    public function itShouldReturnAnExceptionBecausePermissionName()
     {
         $user = User::create([
             'name' => 'name test',
@@ -90,7 +95,7 @@ class HasPermissionTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $user->attachPermission('create.post', $group);
     }
@@ -107,7 +112,7 @@ class HasPermissionTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $user->attachPermission(0, $group);
     }
@@ -123,10 +128,10 @@ class HasPermissionTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $permission = Permission::create([
-            'name' => 'post.create'
+            'name' => 'create.post'
         ]);
 
         $user->attachPermission($permission, $group);
@@ -146,48 +151,28 @@ class HasPermissionTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
         $permission = Permission::create([
-            'name' => 'post.create'
+            'name' => 'create.post'
+        ]);
+        $permissionUp = Permission::create([
+            'name' => 'update.post'
+        ]);
+        $permissionDel = Permission::create([
+            'name' => 'delete.post'
         ]);
 
-        $user->attachPermission($permission, $group);
-        $user->detachPermission($permission, $group);
+        $user->attachPermission($permission->id, $group);
+        $user->attachPermission($permissionUp->id, $group);
+        $user->attachPermission($permissionDel->id, 'group-name-other');
 
-        $this->assertFalse($user->hasPermission($permission, $group));
-    }
+        $user->detachPermission([$permission->id, $permissionUp->id, $permissionDel->id], $group);
 
-    /**
-     * @test
-     */
-    public function aUserCanRevokePermissionName()
-    {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
-
-        $group = 'Company A';
-        $groupB = 'Company B';
-
-        $permission = Permission::create([
-            'name' => 'post.create'
-        ]);
-        $permissionDelete = Permission::create([
-            'name' => 'post.delete'
-        ]);
-
-        $user->attachPermission($permission, $group);
-        $user->attachPermission($permission, $groupB);
-        $user->attachPermission($permissionDelete, $group);
-
-        $user->detachPermission($permission->name, $group);
-
-        $this->assertFalse($user->hasPermission($permission, $group));
-        $this->assertTrue($user->hasPermission($permission, $groupB));
-        $this->assertTrue($user->hasPermission($permissionDelete, $group));
+        $this->assertFalse($user->hasPermission($permission->name, $group));
+        $this->assertFalse($user->hasPermission($permissionUp->name, $group));
+        $this->assertFalse($user->hasPermission($permissionDel->name, $group));
+        $this->assertTrue($user->hasPermission($permissionDel->name, 'group-name-other'));
     }
 
     /**
@@ -201,11 +186,11 @@ class HasPermissionTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
         $groupB = 'Company B';
 
         $permission = Permission::create([
-            'name' => 'post.create'
+            'name' => 'create.post'
         ]);
 
         $permissionD = Permission::create([
@@ -220,16 +205,9 @@ class HasPermissionTest extends TestCase
 
         $user->attachRole($role, $group);
 
-        $this->assertTrue($user->hasPermission($permission, $group));
         $this->assertTrue($user->hasPermission($permission->name, $group));
         $this->assertFalse($user->hasPermission($permissionD->name, $group));
         $this->assertFalse($user->hasPermission($permission->name, $groupB));
-
-        $this->assertTrue($user->hasAnyPermission([$permission], $group));
-        $this->assertTrue($user->hasAnyPermission([$permission->name], $group));
-        $this->assertFalse($user->hasAnyPermission([$permissionD->name], $group));
-        $this->assertTrue($user->hasAnyPermission([$permission, $permissionD->name], $group));
-        $this->assertTrue($user->hasAnyPermission([$permission->name, $permissionD->name], $group));
     }
 
     /**
@@ -243,15 +221,21 @@ class HasPermissionTest extends TestCase
             'password' => bcrypt(123456),
         ]);
 
-        $group = 'Company A';
+        $group = 'group-name';
 
-        $role = Permission::create([
-            'name' => 'post.create'
+        $permission = Permission::create([
+            'name' => 'create.post'
         ]);
 
-        $user->attachPermission($role);
+        $permissionUp = Permission::create([
+            'name' => 'update.post'
+        ]);
 
-        $this->assertFalse($user->hasPermission($role, $group));
-        $this->assertTrue($user->hasPermission($role));
+        $user->attachPermission($permission);
+        $user->attachPermission($permissionUp, $group);
+
+        $this->assertFalse($user->hasPermission($permission->name, $group));
+        $this->assertFalse($user->hasPermission($permissionUp->name));
+        $this->assertTrue($user->hasPermission($permission->name));
     }
 }

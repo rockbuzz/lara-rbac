@@ -26,15 +26,6 @@ $ php artisan vendor:publish --provider="Rockbuzz\LaraRbac\ServiceProvider"
 $ php artisan migrate
 ```
 
-Add RBAC middleware to your `app/Http/Kernel.php`
-
-```php
-protected $routeMiddleware = [
-    ...
-    'rbac' => '\Rockbuzz\LaraRbac\RbacMiddleware::class'
-];
-```
-
 Add Rbac trait to your `User` model
 
 ```php
@@ -69,13 +60,21 @@ $writerRole->save();
 	
 ```php
 $user = User::find(1);
-$user->attachRole($adminRole, $group = 'group-a');
+$user->attachRole($adminRole, $group = 'group-name');
+```
+or 
+```php
+$user->attachRole($adminRole->id, $group = 'group-name');
 ```
 
 #### Revoke role from user
 
 ```php
-$user->detachRole($adminRole, $group = 'group-a');
+$user->detachRole($adminRole, $group = 'group-name');
+```
+or
+```php
+$user->detachRole([$adminRole, $writerRole->id], $group = 'group-name');
 ```
 
 ### Permissions
@@ -99,33 +98,43 @@ https://laravel.com/docs/5.8/eloquent-relationships
 #### Assign permission to user
 
 ```php
-$adminRole = User::find(1);
-$adminRole->attachPermission($createPost, $group = 'group-a');
+$user = User::find(1);
+$user->attachPermission($createPost, $group = 'group-name');
+```
+or
+```php
+$user->attachPermission($createPost->id, $group = 'group-name');
 ```
 
 #### Sync permissions to user
 
 ```php
-$adminRole->syncPermission([$createPost, $updatePost], $group = 'group-a');
+$adminRole->syncPermission([$createPost->id, $updatePost->id], $group = 'group-name');
 ```
 
 #### Revoke permission from user
 
 ```php
-$adminRole->detachPermission($createPost, $group = 'group-a');
+$adminRole->detachPermission([$createPost->id, $updatePost->id], $group = 'group-name');
 ```
 
 ### Check user roles/permissions
 
 ```php
-auth()->user()->hasRole('admin', $group = 'group-a');
-auth()->user()->hasAnyRole(['admin','writer'], $group = 'group-a');
-auth()->user()->hasPermission('update.post', $group = 'group-a');
-auth()->user()->hasPermission('update.post|delete.post', $group = 'group-a');
-auth()->user()->hasAnyPermission(['update.post','create.post'], $group = 'group-a');
+auth()->user()->hasRole('admin', $group = 'group-name');
+auth()->user()->hasRole('admin|writer', $group = 'group-name');
+auth()->user()->hasPermission('update.post', $group = 'group-name');
+auth()->user()->hasPermission('update.post|delete.post', $group = 'group-name');
 ```
 
-### Protect routes
+### Add RBAC middleware to your `app/Http/Kernel.php`
+
+```php
+protected $routeMiddleware = [
+    ...
+    'rbac' => '\Rockbuzz\LaraRbac\RbacMiddleware::class'
+];
+```
 
 ```php
 Route::get('/posts/{group?}', [

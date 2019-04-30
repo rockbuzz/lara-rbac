@@ -24,25 +24,18 @@ interface User
     public function attachRole($role, $group = null);
 
     /**
-     * @param Role|string $role
+     * @param string $role
      * @param mixed|null $group
      * @return bool
      */
-    public function hasRole($role, $group = null): bool;
+    public function hasRole(string $role, $group = null): bool;
 
     /**
-     * @param Role[]|string[] $roles
-     * @param mixed|null $group
-     * @return bool
-     */
-    public function hasAnyRole(array $roles, $group = null): bool;
-
-    /**
-     * @param Role|string $role
+     * @param int[] $roles
      * @param mixed|null $group
      * @return void
      */
-    public function detachRole($role, $group = null);
+    public function detachRole(array $roles, $group = null);
 
     /**
      * @param mixed|null $group
@@ -66,23 +59,16 @@ interface User
     public function syncPermissions(array $permissions, $group = null);
 
     /**
-     * @param Permission|string $permission
+     * @param string $permission
      * @param mixed|null $group
      * @return bool
      */
-    public function hasPermission($permission, $group = null): bool;
+    public function hasPermission(string $permission, $group = null): bool;
 
     /**
-     * @param Permission[]|string[] $permissions
-     * @param mixed|null $group
-     * @return bool
-     */
-    public function hasAnyPermission(array $permissions, $group = null): bool;
-
-    /**
-     * @param Permission|string $permission
+     * @param int[] $permissions
      * @param mixed|null $group
      * @return void
      */
-    public function detachPermission($permission, $group = null);
+    public function detachPermission(array $permissions, $group = null);
 }
