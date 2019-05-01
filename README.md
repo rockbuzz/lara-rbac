@@ -143,6 +143,28 @@ Route::get('/posts/{group?}', [
 ]);
 ```
 
+### Blade directive
+
+Check for role
+
+```
+@hasrole('admin', 'group')
+    // ok
+@else
+    // no
+@endrole
+```
+
+Check for permission
+
+```
+@haspermission('create.post|update.post', 'group')
+    // ok
+@else
+    // no
+@endpermission
+```
+
 ## License
 
 The Lara RBAC is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
