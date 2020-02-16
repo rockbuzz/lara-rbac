@@ -2,240 +2,236 @@
 
 namespace Tests;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Rockbuzz\LaraRbac\Models\Permission;
-use Rockbuzz\LaraRbac\Models\Role;
-use Tests\Models\User;
+use Tests\Models\Workspace;
 
 class HasPermissionTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function aUserHasPermissions()
+    public function testUserPermissions()
     {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
+        $user = $this->createUser();
 
-        $group = 'group-name';
-
-        $permissionReadPost = Permission::create([
-            'name' => 'post.read'
-        ]);
-
-        $permissionCreatePost = Permission::create([
+        $permissionPostStore = Permission::create([
             'name' => 'create.post'
         ]);
 
-        $permissionUpdatePost = Permission::create([
-            'name' => 'update.post'
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
         ]);
 
-        $permissionDeletePost = Permission::create([
-            'name' => 'delete.post'
+        \DB::table('permission_user')->insert([
+            'user_id' => $user->id,
+            'permission_id' => $permissionPostStore->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
         ]);
 
-        $user->attachPermission($permissionReadPost, $group);
-        $user->attachPermission($permissionCreatePost->id, $group);
-
-        $this->assertTrue($user->hasPermission($permissionReadPost->name, $group));
-        $this->assertTrue($user->hasPermission($permissionCreatePost->name, $group));
-        $this->assertFalse($user->hasPermission($permissionUpdatePost, $group));
-        $this->assertFalse($user->hasPermission($permissionDeletePost->name, $group));
-
-        $user->syncPermissions([$permissionUpdatePost, $permissionDeletePost], $group);
-
-        $this->assertFalse($user->hasPermission($permissionReadPost->name, $group));
-        $this->assertTrue($user->hasPermission($permissionUpdatePost->name, $group));
-        $this->assertTrue($user->hasPermission($permissionDeletePost->name, $group));
+        $this->assertInstanceOf(BelongsToMany::class, $user->permissions($workspace));
+        $this->assertContains($permissionPostStore->id, $user->permissions($workspace)->pluck('id'));
     }
 
-    /**
-     * @test
-     */
-    public function aUserHasPermissionsWithStringDivider()
+    public function testUserHasPermissions()
     {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
+        $user = $this->createUser();
 
-        $group = 'group-name';
-
-        $permission = Permission::create([
-            'name' => 'create.post'
+        $permissionPostStore = Permission::create([
+            'name' => 'post.store'
         ]);
 
         Permission::create([
-            'name' => 'post.edit'
+            'name' => 'post.update'
         ]);
 
-        Permission::create([
-            'name' => 'post.delete'
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
         ]);
 
-        $user->attachPermission($permission->id, $group);
+        \DB::table('permission_user')->insert([
+            'user_id' => $user->id,
+            'permission_id' => $permissionPostStore->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
 
-        $this->assertTrue($user->hasPermission('create.post|post.delete', $group));
-        $this->assertFalse($user->hasPermission('post.edit|post.delete', $group));
+        $this->assertTrue($user->hasPermission('post.store', $workspace));
+        $this->assertTrue($user->hasPermission('post.update|post.store', $workspace));
+        $this->assertTrue($user->hasPermission($permissionPostStore, $workspace));
+        $this->assertFalse($user->hasPermission('post.update', $workspace));
+        $this->assertFalse($user->hasPermission('post.update', $workspace));
     }
 
-    /**
-     * @test
-     * @expectedException \Illuminate\Database\Eloquent\ModelNotFoundException
-     */
-    public function itShouldReturnAnExceptionBecausePermissionName()
+    public function testUserAttachPermission()
     {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
+        $user = $this->createUser();
+
+        $permissionPostStore = Permission::create([
+            'name' => 'post.store'
         ]);
 
-        $group = 'group-name';
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
+        ]);
 
-        $user->attachPermission('create.post', $group);
+        $user->attachPermission($permissionPostStore, $workspace);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->attachPermission([0], $workspace);
     }
 
-    /**
-     * @test
-     * @expectedException \Illuminate\Database\Eloquent\ModelNotFoundException
-     */
-    public function itShouldReturnAnExceptionBecausePermissionIdDoesNotExist()
+    public function testUserAttachPermissions()
     {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
+        $user = $this->createUser();
+
+        $permissionPostStore = Permission::create([
+            'name' => 'post.store'
         ]);
 
-        $group = 'group-name';
+        $permissionPostUpdate = Permission::create([
+            'name' => 'post.update'
+        ]);
 
-        $user->attachPermission(0, $group);
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
+        ]);
+
+        $user->attachPermission([$permissionPostStore, $permissionPostUpdate], $workspace);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostUpdate->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->attachPermission([0], $workspace);
     }
 
-    /**
-     * @test
-     */
-    public function itShouldOnlyReturnAPermissionOfUser()
+    public function testUserSyncPermissions()
     {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
+        $user = $this->createUser();
+
+        $permissionPostStore = Permission::create([
+            'name' => 'post.store'
         ]);
 
-        $group = 'group-name';
-
-        $permission = Permission::create([
-            'name' => 'create.post'
+        $permissionPostUpdate = Permission::create([
+            'name' => 'admin'
         ]);
 
-        $user->attachPermission($permission, $group);
-        $user->attachPermission($permission, $group);
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
+        ]);
 
-        $this->assertEquals(1, $user->permissions($group)->count());
+        \DB::table('role_user')->insert([
+            'user_id' => $user->id,
+            'role_id' => $permissionPostUpdate->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $user->syncPermissions([$permissionPostStore, $permissionPostUpdate], $workspace);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostUpdate->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->syncPermissions([0], $workspace);
     }
 
-    /**
-     * @test
-     */
-    public function aUserCanRevokePermission()
+    public function testUserDetachPermissions()
     {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
+        $user = $this->createUser();
+
+        $permissionPostStore = Permission::create([
+            'name' => 'post.store'
         ]);
 
-        $group = 'group-name';
-
-        $permission = Permission::create([
-            'name' => 'create.post'
-        ]);
-        $permissionUp = Permission::create([
-            'name' => 'update.post'
-        ]);
-        $permissionDel = Permission::create([
-            'name' => 'delete.post'
+        $permissionPostUpdate = Permission::create([
+            'name' => 'post.update'
         ]);
 
-        $user->attachPermission($permission->id, $group);
-        $user->attachPermission($permissionUp->id, $group);
-        $user->attachPermission($permissionDel->id, 'group-name-other');
-
-        $user->detachPermission([$permission->id, $permissionUp->id, $permissionDel->id], $group);
-
-        $this->assertFalse($user->hasPermission($permission->name, $group));
-        $this->assertFalse($user->hasPermission($permissionUp->name, $group));
-        $this->assertFalse($user->hasPermission($permissionDel->name, $group));
-        $this->assertTrue($user->hasPermission($permissionDel->name, 'group-name-other'));
-    }
-
-    /**
-     * @test
-     */
-    public function aUserHasPermissionsOfRoles()
-    {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
+        $workspace = Workspace::create([
+            'name' => 'Workspace Name'
         ]);
 
-        $group = 'group-name';
-        $groupB = 'Company B';
-
-        $permission = Permission::create([
-            'name' => 'create.post'
+        \DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
         ]);
 
-        $permissionD = Permission::create([
-            'name' => 'post.delete'
+        \DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostUpdate->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
         ]);
 
-        $role = Role::create([
-            'name' => 'writer'
+        $otherWorkspace = Workspace::create([
+            'name' => 'Workspace'
         ]);
 
-        $role->permissions()->attach($permission);
-
-        $user->attachRole($role, $group);
-
-        $this->assertTrue($user->hasPermission($permission->name, $group));
-        $this->assertFalse($user->hasPermission($permissionD->name, $group));
-        $this->assertFalse($user->hasPermission($permission->name, $groupB));
-    }
-
-    /**
-     * @test
-     */
-    public function aUserHasPermissionsWithNullableGroup()
-    {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
+        \DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $otherWorkspace->id,
+            'resource_type' => Workspace::class
         ]);
 
-        $group = 'group-name';
 
-        $permission = Permission::create([
-            'name' => 'create.post'
+        $user->detachPermissions([$permissionPostStore->id, $permissionPostUpdate->id], $workspace);
+
+        $this->assertDatabaseMissing('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
         ]);
 
-        $permissionUp = Permission::create([
-            'name' => 'update.post'
+        $this->assertDatabaseMissing('permission_user', [
+            'permission_id' => $permissionPostUpdate->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
         ]);
 
-        $user->attachPermission($permission);
-        $user->attachPermission($permissionUp, $group);
-
-        $this->assertFalse($user->hasPermission($permission->name, $group));
-        $this->assertFalse($user->hasPermission($permissionUp->name));
-        $this->assertTrue($user->hasPermission($permission->name));
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $otherWorkspace->id,
+            'resource_type' => Workspace::class
+        ]);
     }
 }

@@ -2,23 +2,96 @@
 
 namespace Tests;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Tests\Models\Workspace;
 use Rockbuzz\LaraRbac\Models\Role;
-use Tests\Models\User;
 
 class HasRoleTest extends TestCase
 {
-    /**
-     * @test
-     */
-    public function aUserHasRoles()
+    public function testUserRoles()
     {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
+        $user = $this->createUser();
+
+        $roleAdmin = Role::create([
+            'name' => 'admin'
         ]);
 
-        $group = 'group-name';
+        $workspace = Workspace::create([
+            'name' => 'Workspace Name'
+        ]);
+
+        \DB::table('role_user')->insert([
+            'user_id' => $user->id,
+            'role_id' => $roleAdmin->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertInstanceOf(BelongsToMany::class, $user->roles($workspace));
+        $this->assertContains($roleAdmin->id, $user->roles($workspace)->pluck('id'));
+        $this->assertEquals(1, $user->roles($workspace)->count());
+    }
+
+    public function testUserHasRole()
+    {
+        $user = $this->createUser();
+
+        Role::create([
+            'name' => 'super'
+        ]);
+
+        $roleAdmin = Role::create([
+            'name' => 'admin'
+        ]);
+
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
+        ]);
+
+        \DB::table('role_user')->insert([
+            'user_id' => $user->id,
+            'role_id' => $roleAdmin->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertTrue($user->hasRole('admin', $workspace));
+        $this->assertTrue($user->hasRole('super|admin', $workspace));
+        $this->assertTrue($user->hasRole($roleAdmin, $workspace));
+        $this->assertFalse($user->hasRole('super', $workspace));
+        $this->assertFalse($user->hasRole('super', $workspace));
+    }
+
+    public function testUserAttachRole()
+    {
+        $user = $this->createUser();
+
+        $roleAdmin = Role::create([
+            'name' => 'admin'
+        ]);
+
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
+        ]);
+
+        $user->attachRole($roleAdmin, $workspace);
+
+        $this->assertDatabaseHas('role_user', [
+            'role_id' => $roleAdmin->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->attachRole([0], $workspace);
+    }
+
+    public function testUserAttachRoles()
+    {
+        $user = $this->createUser();
 
         $roleSuper = Role::create([
             'name' => 'super'
@@ -28,178 +101,136 @@ class HasRoleTest extends TestCase
             'name' => 'admin'
         ]);
 
-        $roleWriter = Role::create([
-            'name' => 'writer'
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
         ]);
 
-        $roleReader = Role::create([
-            'name' => 'reader'
+        $user->attachRole([$roleSuper, $roleAdmin], $workspace);
+
+        $this->assertDatabaseHas('role_user', [
+            'role_id' => $roleSuper->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
         ]);
 
-        $user->attachRole($roleAdmin, $group);
-        $user->attachRole($roleWriter->id, $group);
-        $user->attachRole($roleReader, $group);
+        $this->assertDatabaseHas('role_user', [
+            'role_id' => $roleAdmin->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
 
-        $this->assertTrue($user->hasRole($roleAdmin->name, $group));
-        $this->assertTrue($user->hasRole($roleWriter->name, $group));
-        $this->assertTrue($user->hasRole($roleReader->name, $group));
-        $this->assertFalse($user->hasRole($roleSuper->name, $group));
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->attachRole([0], $workspace);
     }
 
-    /**
-     * @test
-     */
-    public function aUserHasRolesWithStringDivider()
+    public function testUserSyncRoles()
     {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
+        $user = $this->createUser();
 
-        $group = 'group-name';
-
-        $permission = Role::create([
-            'name' => 'admin'
-        ]);
-
-        Role::create([
-            'name' => 'writer'
-        ]);
-
-        Role::create([
-            'name' => 'reader'
-        ]);
-
-        $user->attachRole($permission->id, $group);
-
-        $this->assertTrue($user->hasRole('admin|writer', $group));
-        $this->assertFalse($user->hasRole('writer|reader', $group));
-    }
-
-    /**
-     * @test
-     * @expectedException \Illuminate\Database\Eloquent\ModelNotFoundException
-     */
-    public function itShouldReturnAnExceptionBecauseRoleNameDoesNotExist()
-    {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
-
-        $group = 'group-name';
-
-        $user->attachRole('admin', $group);
-    }
-
-    /**
-     * @test
-     * @expectedException \Illuminate\Database\Eloquent\ModelNotFoundException
-     */
-    public function itShouldReturnAnExceptionBecauseRoleIdDoesNotExist()
-    {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
-
-        $group = 'group-name';
-
-        $user->attachRole(0, $group);
-    }
-
-    /**
-     * @test
-     */
-    public function itShouldOnlyReturnARoleOfUser()
-    {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
-
-        $group = 'group-name';
-
-        $role = Role::create([
-            'name' => 'admin'
-        ]);
-
-        $user->attachRole($role, $group);
-        $user->attachRole($role, $group);
-
-        $this->assertEquals(1, $user->roles($group)->count());
-    }
-
-    /**
-     * @test
-     */
-    public function aUserCanDetachRole()
-    {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
-
-        $group = 'group-name';
-
-        $role = Role::create([
-            'name' => 'admin'
-        ]);
-        $roleWriter = Role::create([
-            'name' => 'writer'
-        ]);
-        $roleReader = Role::create([
-            'name' => 'reader'
-        ]);
         $roleSuper = Role::create([
             'name' => 'super'
         ]);
 
-        $user->attachRole($role->id, $group);
-        $user->attachRole($roleWriter->id, $group);
-        $user->attachRole($roleReader->id, $group);
-        $user->attachRole($roleSuper->id, 'group-name-other');
-
-        $user->detachRole([$role->id, $roleWriter->id, $roleSuper->id], $group);
-
-        $this->assertFalse($user->hasRole($role->name, $group));
-        $this->assertFalse($user->hasRole($roleWriter->name, $group));
-        $this->assertTrue($user->hasRole($roleReader->name, $group));
-        $this->assertFalse($user->hasRole($roleSuper->name, $group));
-        $this->assertTrue($user->hasRole($roleSuper->name, 'group-name-other'));
-    }
-
-    /**
-     * @test
-     */
-    public function aUserHasRolesWithNullableGroup()
-    {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
-
-        $group = 'group-name';
-
-        $role = Role::create([
+        $roleAdmin = Role::create([
             'name' => 'admin'
         ]);
 
-        $roleWriter = Role::create([
-            'name' => 'writer'
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
         ]);
 
-        $user->attachRole($role);
-        $user->attachRole($roleWriter, $group);
+        \DB::table('role_user')->insert([
+            'user_id' => $user->id,
+            'role_id' => $roleAdmin->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
 
-        $this->assertFalse($user->hasRole($role->name, $group));
-        $this->assertFalse($user->hasRole($roleWriter->name));
-        $this->assertTrue($user->hasRole($role->name));
+        $user->syncRoles([$roleSuper, $roleAdmin], $workspace);
+
+        $this->assertDatabaseHas('role_user', [
+            'role_id' => $roleSuper->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertDatabaseHas('role_user', [
+            'role_id' => $roleAdmin->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->syncRoles([0], $workspace);
+    }
+
+    public function testUserDetachRoles()
+    {
+        $user = $this->createUser();
+
+        $roleSuper = Role::create([
+            'name' => 'super'
+        ]);
+        $roleAdmin = Role::create([
+            'name' => 'admin'
+        ]);
+
+        $workspace = Workspace::create([
+            'name' => 'Workspace'
+        ]);
+
+        \DB::table('role_user')->insert([
+            'user_id' => $user->id,
+            'role_id' => $roleSuper->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        \DB::table('role_user')->insert([
+            'user_id' => $user->id,
+            'role_id' => $roleAdmin->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $otherWorkspace = Workspace::create([
+            'name' => 'Workspace'
+        ]);
+
+        \DB::table('role_user')->insert([
+            'user_id' => $user->id,
+            'role_id' => $roleSuper->id,
+            'resource_id' => $otherWorkspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $user->detachRoles([$roleSuper->id, $roleAdmin->id], $workspace);
+
+        $this->assertDatabaseMissing('role_user', [
+            'user_id' => $user->id,
+            'role_id' => $roleSuper->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertDatabaseMissing('role_user', [
+            'user_id' => $user->id,
+            'role_id' => $roleAdmin->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertDatabaseHas('role_user', [
+            'user_id' => $user->id,
+            'role_id' => $roleSuper->id,
+            'resource_id' => $otherWorkspace->id,
+            'resource_type' => Workspace::class
+        ]);
     }
 }

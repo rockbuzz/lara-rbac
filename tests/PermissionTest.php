@@ -7,15 +7,15 @@ use Rockbuzz\LaraRbac\Models\Permission;
 use Rockbuzz\LaraRbac\Models\Role;
 use Rockbuzz\LaraRbac\Traits\Uuid;
 
-class RoleTest extends TestCase
+class PermissionTest extends TestCase
 {
-    protected $role;
+    protected $permission;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->role = new Role();
+        $this->permission = new Permission();
     }
 
     public function testIfUsesTraits()
@@ -30,16 +30,17 @@ class RoleTest extends TestCase
 
     public function testIncrementing()
     {
-        $this->assertFalse($this->role->incrementing);
+        $this->assertFalse($this->permission->incrementing);
     }
 
     public function testKeyType()
     {
-        $this->assertEquals('string', $this->role->getKeyType());
+        $this->assertEquals('string', $this->permission->getKeyType());
     }
-    public function testRoleFillable()
+
+    public function testPermissionFillable()
     {
-        $role = Role::create([
+        $role = Permission::create([
             'name' => 'admin'
         ]);
 
@@ -48,18 +49,18 @@ class RoleTest extends TestCase
 
     public function testCasts()
     {
-        $this->assertEquals(['id' => 'string'], $this->role->getCasts());
+        $this->assertEquals(['id' => 'string'], $this->permission->getCasts());
     }
 
     public function testDates()
     {
         $this->assertEquals(
             array_values(['created_at', 'updated_at']),
-            array_values($this->role->getDates())
+            array_values($this->permission->getDates())
         );
     }
 
-    public function testRoleCanHavePermissions()
+    public function testPermissionCanHaveRoles()
     {
         $role = Role::create([
             'name' => 'admin'
@@ -74,14 +75,18 @@ class RoleTest extends TestCase
             'role_id' => $role->id
         ]);
 
-        $this->assertInstanceOf(BelongsToMany::class, $role->permissions());
-        $this->assertEquals(1, $role->permissions->count());
-        $this->assertContains($permission->id, $role->permissions->pluck('id'));
+        $this->assertInstanceOf(BelongsToMany::class, $permission->roles());
+        $this->assertEquals(1, $permission->roles->count());
+        $this->assertContains($role->id, $permission->roles->pluck('id'));
     }
 
-    public function testRoleHasPermission()
+    public function testPermissionHasPermission()
     {
         $role = Role::create([
+            'name' => 'super'
+        ]);
+
+        $roleAdmin = Role::create([
             'name' => 'admin'
         ]);
 
@@ -89,29 +94,25 @@ class RoleTest extends TestCase
             'name' => 'post.create'
         ]);
 
-        $permissionUp = Permission::create([
-            'name' => 'post.update'
-        ]);
-
         \DB::table('permission_role')->insert([
             'permission_id' => $permission->id,
             'role_id' => $role->id
         ]);
 
-        $this->assertTrue($role->hasPermission($permission));
-        $this->assertTrue($role->hasPermission($permission->name));
-        $this->assertFalse($role->hasPermission($permissionUp));
-        $this->assertFalse($role->hasPermission($permissionUp->name));
+        $this->assertTrue($permission->hasRole($role));
+        $this->assertTrue($permission->hasRole($role->name));
+        $this->assertFalse($permission->hasRole($roleAdmin));
+        $this->assertFalse($permission->hasRole($roleAdmin->name));
 
-        $permissionDel = Permission::create([
-            'name' => 'post.delete'
+        $roleEditor = Role::create([
+            'name' => 'editor'
         ]);
 
         \DB::table('permission_role')->insert([
-            'permission_id' => $permissionDel->id,
-            'role_id' => $role->id
+            'permission_id' => $permission->id,
+            'role_id' => $roleEditor->id
         ]);
 
-        $this->assertTrue($role->hasPermission("{$permissionUp->name}|{$permissionDel->name}"));
+        $this->assertTrue($permission->hasRole("{$roleAdmin->name}|{$roleEditor->name}"));
     }
 }

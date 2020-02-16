@@ -4,10 +4,23 @@ namespace Rockbuzz\LaraRbac\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Rockbuzz\LaraRbac\Traits\Uuid;
 
 class Role extends Model
 {
-    protected $guarded = [];
+    use Uuid;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'name'
+    ];
+
+    protected $casts = [
+        'id' => 'string',
+    ];
 
     public function permissions(): BelongsToMany
     {
@@ -15,28 +28,16 @@ class Role extends Model
     }
 
     /**
-     * @param Permission|string $permission
+     * @param Permission|string $permission Instance permission or permission name or permissions name separated by |.
+     * ex.: post.store|post.update
      * @return bool
      */
     public function hasPermission($permission): bool
     {
-        if ($permission instanceof Permission) {
-            return $this->permissions()->whereName($permission->name)->exists();
-        }
-        return $this->permissions()->whereName($permission)->exists();
-    }
+        $permission = is_a($permission, Permission::class) ? $permission->name : $permission;
 
-    /**
-     * @param Permission[]|string[] $permissions
-     * @return bool
-     */
-    public function hasAnyPermission(array $permissions): bool
-    {
-        foreach ($permissions as $permission) {
-            if ($this->hasPermission($permission)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->permissions()
+            ->whereIn('name', explode('|', $permission))
+            ->exists();
     }
 }

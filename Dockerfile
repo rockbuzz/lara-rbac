@@ -1,11 +1,11 @@
-FROM phpdockerio/php71-fpm:latest
+FROM phpdockerio/php73-fpm:latest
 
 LABEL maintainer="TiagoDevWeb"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
-    && apt-get -y --no-install-recommends install php7.1-sqlite3 php7.1-xsl php-yaml php-xdebug \
+    && apt-get -y --no-install-recommends install  php7.3-mysql php-redis php7.3-sqlite3 php-xdebug php7.3-gd php7.3-intl php-mongodb php-yaml \
     && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 RUN cd '/' \

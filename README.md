@@ -1,12 +1,12 @@
 # Lara RBAC
 
-Role Based Access Control with grouping
+Role Based Access Control per resource
 
 [![Build Status](https://travis-ci.org/rockbuzz/lara-rbac.svg?branch=master)](https://travis-ci.org/rockbuzz/lara-rbac)
 
 ## Requirements
 
-PHP: >=7.1
+PHP: >=7.2
 
 ## Install
 
@@ -14,12 +14,7 @@ PHP: >=7.1
 $ composer require rockbuzz/lara-rbac
 ```
 
-## Configuration
-```php
-
-```
-
-Publish migration files
+Can publish migration and config files
 
 ```
 $ php artisan vendor:publish --provider="Rockbuzz\LaraRbac\ServiceProvider"
@@ -60,17 +55,27 @@ $writerRole->save();
 	
 ```php
 $user = User::find(1);
-$user->attachRole($adminRole, $group = 'group-name');
+$user->attachRole($adminRole, $resource);
 ```
 or 
 ```php
-$user->attachRole($adminRole->id, $group = 'group-name');
+$user->attachRole($adminRole->id, $resource);
+```
+or 
+```php
+$user->attachRole([$adminRole->id, $writerRole->id], $resource);
+```
+
+#### Sync roles to user
+
+```php
+$user->syncRoles([$adminRole->id, $writerRole->id], $resource);
 ```
 
 #### Revoke role from user
 
 ```php
-$user->detachRole([$adminRole, $writerRole->id], $group = 'group-name');
+$user->detachRoles([$adminRole, $writerRole->id], $resource);
 ```
 
 ### Permissions
@@ -78,69 +83,53 @@ $user->detachRole([$adminRole, $writerRole->id], $group = 'group-name');
 #### Create permission
 
 ```php
-$createPost = new \Rockbuzz\LaraRbac\Models\Permission;
-$createPost->name = 'create.post';
-$createPost->save();
+$postStore = new \Rockbuzz\LaraRbac\Models\Permission;
+$postStore->name = 'post.store';
+$postStore->save();
 
-$updatePost = new \Rockbuzz\LaraRbac\Models\Permission;
-$updatePost->name = 'update.post';
-$updatePost->save();
+$postUpdate = new \Rockbuzz\LaraRbac\Models\Permission;
+$postUpdate->name = 'post.update';
+$postUpdate->save();
 ```
 
 #### Assign permission to role
 
-https://laravel.com/docs/5.8/eloquent-relationships
+https://laravel.com/docs/6.x/eloquent-relationships
 
 #### Assign permission to user
 
 ```php
 $user = User::find(1);
-$user->attachPermission($createPost, $group = 'group-name');
+$user->attachPermission($postStore, $resource);
 ```
 or
 ```php
-$user->attachPermission($createPost->id, $group = 'group-name');
+$user->attachPermission($postStore->id, $resource);
+```
+or
+```php
+$user->attachPermission([$postStore->id, $postUpdate->id], $resource);
 ```
 
 #### Sync permissions to user
 
 ```php
-$adminRole->syncPermission([$createPost->id, $updatePost->id], $group = 'group-name');
+$user->syncPermissions([$postStore->id, $postUpdate->id], $resource);
 ```
 
 #### Revoke permission from user
 
 ```php
-$adminRole->detachPermission([$createPost->id, $updatePost->id], $group = 'group-name');
+$user->detachPermissions([$postStore->id, $postUpdate->id], $resource);
 ```
 
 ### Check user roles/permissions
 
 ```php
-auth()->user()->hasRole('admin', $group = 'group-name');
-auth()->user()->hasRole('admin|writer', $group = 'group-name');
-auth()->user()->hasPermission('update.post', $group = 'group-name');
-auth()->user()->hasPermission('update.post|delete.post', $group = 'group-name');
-```
-
-### Add RBAC middleware to your `app/Http/Kernel.php`
-
-```php
-protected $routeMiddleware = [
-    ...
-    'rbac' => '\Rockbuzz\LaraRbac\RbacMiddleware::class'
-];
-```
-
-```php
-Route::get('/posts/{group?}', [
-    'uses' => 'PostsController@index',
-    'middleware' => ['auth', 'rbac:role,admin']
-]);
-Route::get('/posts/{group?}', [
-    'uses' => 'PostsController@delete',
-    'middleware' => ['auth', 'rbac:permission,delete.post']
-]);
+auth()->user()->hasRole('admin', $resource);
+auth()->user()->hasRole('admin|writer', $resource);
+auth()->user()->hasPermission('post.update', $resource);
+auth()->user()->hasPermission('post.update|delete.post', $resource);
 ```
 
 ### Blade directive
@@ -148,7 +137,7 @@ Route::get('/posts/{group?}', [
 Check for role
 
 ```
-@hasrole('admin', 'group')
+@hasrole('admin', $resource)
     // ok
 @else
     // no
@@ -158,7 +147,7 @@ Check for role
 Check for permission
 
 ```
-@haspermission('create.post|update.post', 'group')
+@haspermission('post.store|post.update', $resource)
     // ok
 @else
     // no

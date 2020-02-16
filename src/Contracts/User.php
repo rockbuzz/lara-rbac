@@ -1,74 +1,84 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Rockbuzz\LaraRbac\Contracts;
 
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Rockbuzz\LaraRbac\Models\{Permission, Role};
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Rockbuzz\LaraRbac\Models\Permission;
-use Rockbuzz\LaraRbac\Models\Role;
+use Illuminate\Database\Eloquent\{Model, ModelNotFoundException};
 
 interface User
 {
     /**
-     * @param mixed|null $group
+     * @param Model|null $resource
      * @return BelongsToMany
      */
-    public function roles($group = Group::DEFAULT): BelongsToMany;
+    public function roles(Model $resource = null): BelongsToMany;
+
+    /**
+     * @param string $role Instance role or role name or roles name separated by |.
+     * ex.: super|admin
+     * @param Model $resource
+     * @return bool
+     */
+    public function hasRole($role, Model $resource): bool;
 
     /**
      * @param Role|int $role
-     * @param mixed|null $group
+     * @param Model $resource
      * @throws ModelNotFoundException
      * @return void
      */
-    public function attachRole($role, $group = Group::DEFAULT);
+    public function attachRole($role, Model $resource): void;
 
     /**
-     * @param string $role
-     * @param mixed|null $group
-     * @return bool
-     */
-    public function hasRole(string $role, $group = Group::DEFAULT): bool;
-
-    /**
-     * @param int[] $roles
-     * @param mixed|null $group
+     * @param Role[]|int[] $roles
+     * @param Model $resource
      * @return void
      */
-    public function detachRole(array $roles, $group = Group::DEFAULT);
+    public function syncRoles(array $roles, Model $resource): void;
 
     /**
-     * @param mixed|null $group
+     * @param int[] $roles roles id
+     * @param Model $resource
+     * @return void
+     */
+    public function detachRoles(array $roles, Model $resource): void;
+
+    /**
+     * @param Model|null $resource
      * @return BelongsToMany
      */
-    public function permissions($group = Group::DEFAULT): BelongsToMany;
+    public function permissions(Model $resource = null): BelongsToMany;
+
+    /**
+     * @param Permission|string $permission Instance permission or permission name or permissions name separated by |.
+     * ex.: post.store|post.update
+     * @param Model $resource
+     * @return bool
+     */
+    public function hasPermission($permission, Model $resource): bool;
 
     /**
      * @param Permission|int $permission
-     * @param mixed|null $group
+     * @param Model $resource
      * @throws ModelNotFoundException
      * @return void
      */
-    public function attachPermission($permission, $group = Group::DEFAULT);
+    public function attachPermission($permission, Model $resource): void;
 
     /**
-     * @param Permission[]|string[] $permissions
-     * @param mixed|null $group
+     * @param Permission[]|int[] $permissions
+     * @param Model $resource
      * @return void
      */
-    public function syncPermissions(array $permissions, $group = Group::DEFAULT);
+    public function syncPermissions(array $permissions, Model $resource): void;
 
     /**
-     * @param string $permission
-     * @param mixed|null $group
-     * @return bool
-     */
-    public function hasPermission(string $permission, $group = Group::DEFAULT): bool;
-
-    /**
-     * @param int[] $permissions
-     * @param mixed|null $group
+     * @param int[] $permissions permissions id
+     * @param Model $resource
      * @return void
      */
-    public function detachPermission(array $permissions, $group = Group::DEFAULT);
+    public function detachPermissions(array $permissions, Model $resource): void;
 }
