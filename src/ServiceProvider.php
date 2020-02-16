@@ -13,7 +13,7 @@ class ServiceProvider extends SupportServiceProvider
 
         $this->publishes([
             __DIR__ . '/database/migrations/2020_02_15_000000_create_rbac_table.php' =>
-                database_path('migrations') .
+                database_path('migrations') . '/' .
                 now()->format('Y_m_d_his') . '_create_'. config('rbac.tables.prefix') .'rbac_table.php'
         ], 'migrations');
 
