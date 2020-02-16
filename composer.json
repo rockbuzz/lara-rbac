@@ -1,7 +1,7 @@
 {
   "name": "rockbuzz/lara-rbac",
-  "description": "Role Based Access Control with grouping",
-  "keywords": [],
+  "description": "Role Based Access Control per resource",
+  "keywords": ["roles", "permissions", "rbac", "rbac per resource"],
   "license": "MIT",
   "authors": [
     {
