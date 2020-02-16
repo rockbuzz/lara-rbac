@@ -6,7 +6,7 @@ Role Based Access Control per resource
 
 ## Requirements
 
-PHP: >=7.2
+PHP: >=7.3
 
 ## Install
 
