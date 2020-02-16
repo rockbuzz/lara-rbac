@@ -51,7 +51,7 @@ class CreateRbacTable extends Migration
                 ->onDelete('cascade');
             $table->uuid('resource_id')->index();
             $table->string('resource_type')->index();
-            $table->unique(['user_id', 'role_id', 'resource_id', 'resource_type']);
+            $table->unique(['user_id', 'role_id', 'resource_id', 'resource_type'], 'role_user_resource_unique');
         });
 
         Schema::create(config('rbac.tables.prefix') . 'permission_user', function (Blueprint $table) {
@@ -67,7 +67,7 @@ class CreateRbacTable extends Migration
                 ->onDelete('cascade');
             $table->uuid('resource_id')->index();
             $table->string('resource_type')->index();
-            $table->unique(['user_id', 'permission_id', 'resource_id', 'resource_type']);
+            $table->unique(['user_id', 'permission_id', 'resource_id', 'resource_type'], 'permission_user_resource_unique');
         });
     }
 
