@@ -9,8 +9,6 @@ class ServiceProvider extends SupportServiceProvider
 {
     public function boot()
     {
-        $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
-
         $this->publishes([
             __DIR__ . '/database/migrations/2020_02_15_000000_create_rbac_table.php' =>
                 database_path('migrations') . '/' .

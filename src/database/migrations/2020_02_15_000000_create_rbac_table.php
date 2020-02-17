@@ -13,37 +13,41 @@ class CreateRbacTable extends Migration
      */
     public function up()
     {
-        Schema::create(config('rbac.tables.prefix') . 'roles', function (Blueprint $table) {
+        $prefix = config('rbac.tables.prefix');
+
+        Schema::create($prefix . 'roles', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->timestamps();
         });
 
-        Schema::create(config('rbac.tables.prefix') . 'permissions', function (Blueprint $table) {
+        Schema::create($prefix . 'permissions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->timestamps();
         });
 
-        Schema::create(config('rbac.tables.prefix') . 'permission_role', function (Blueprint $table) {
-            $table->uuid('role_id')->index();
+        Schema::create($prefix . 'permission_role', function (Blueprint $table) {
+            $table->uuid('role_id');
             $table->foreign('role_id')
-                  ->references('id')
-                  ->on('roles')
-                  ->onDelete('cascade');
-            $table->uuid('permission_id')->index();
+                ->references('id')
+                ->on('roles')
+                ->onDelete('cascade');
+            $table->uuid('permission_id');
             $table->foreign('permission_id')
-                  ->references('id')
-                  ->on('permissions')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('permissions')
+                ->onDelete('cascade');
+            $table->primary(['permission_id', 'role_id'], 'permission_role_primary');
+            $table->index(['permission_id', 'role_id'], 'permission_role_index');
         });
 
-        Schema::create(config('rbac.tables.prefix') . 'role_user', function (Blueprint $table) {
+        Schema::create($prefix . 'role_user', function (Blueprint $table) {
             $table->uuid('role_id')->index();
             $table->foreign('role_id')
-                  ->references('id')
-                  ->on('roles')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('roles')
+                ->onDelete('cascade');
             $table->uuid('user_id')->index();
             $table->foreign('user_id')
                 ->references('id')
@@ -51,15 +55,16 @@ class CreateRbacTable extends Migration
                 ->onDelete('cascade');
             $table->uuid('resource_id')->index();
             $table->string('resource_type')->index();
-            $table->unique(['user_id', 'role_id', 'resource_id', 'resource_type'], 'role_user_resource_unique');
+            $table->primary(['user_id', 'role_id', 'resource_id', 'resource_type'], 'role_user_resource_primary');
+            $table->index(['role_id', 'user_id', 'resource_id', 'resource_type'], 'role_user_resource_index');
         });
 
-        Schema::create(config('rbac.tables.prefix') . 'permission_user', function (Blueprint $table) {
+        Schema::create($prefix . 'permission_user', function (Blueprint $table) {
             $table->uuid('permission_id')->index();
             $table->foreign('permission_id')
-                  ->references('id')
-                  ->on('permissions')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('permissions')
+                ->onDelete('cascade');
             $table->uuid('user_id')->index();
             $table->foreign('user_id')
                 ->references('id')
@@ -67,7 +72,8 @@ class CreateRbacTable extends Migration
                 ->onDelete('cascade');
             $table->uuid('resource_id')->index();
             $table->string('resource_type')->index();
-            $table->unique(['user_id', 'permission_id', 'resource_id', 'resource_type'], 'permission_user_resource_unique');
+            $table->primary(['user_id', 'permission_id', 'resource_id', 'resource_type'], 'permission_user_resource_primary');
+            $table->index(['user_id', 'permission_id', 'resource_id', 'resource_type'], 'permission_role_resource_index');
         });
     }
 
@@ -78,10 +84,12 @@ class CreateRbacTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists(config('rbac.tables.prefix') . 'user_permission');
-        Schema::dropIfExists(config('rbac.tables.prefix') . 'user_role');
-        Schema::dropIfExists(config('rbac.tables.prefix') . 'permission_role');
-        Schema::dropIfExists(config('rbac.tables.prefix') . 'permissions');
-        Schema::dropIfExists(config('rbac.tables.prefix') . 'roles');
+        $prefix = config('rbac.tables.prefix');
+
+        Schema::dropIfExists($prefix . 'permission_user');
+        Schema::dropIfExists($prefix . 'role_user');
+        Schema::dropIfExists($prefix . 'permission_role');
+        Schema::dropIfExists($prefix . 'permissions');
+        Schema::dropIfExists($prefix . 'roles');
     }
 }

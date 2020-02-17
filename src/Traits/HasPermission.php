@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Rockbuzz\LaraRbac\Traits;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Rockbuzz\LaraRbac\Models\Permission;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\{Model, ModelNotFoundException};
 
 trait HasPermission
 {
@@ -33,9 +32,21 @@ trait HasPermission
     {
         $permission = is_a($permission, Permission::class) ? $permission->name : $permission;
 
-        return $this->permissions($resource)
-            ->whereIn('name', explode('|', $permission))
-            ->exists();
+        $arrayPermissionsName = explode('|', $permission);
+
+        if ($this->permissions($resource)
+            ->whereIn('name', $arrayPermissionsName)
+            ->exists()) {
+            return true;
+        }
+
+        foreach ($this->roles($resource)->get() as $role) {
+            if (array_intersect($role->permissions()->pluck('name')->toArray(), $arrayPermissionsName)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

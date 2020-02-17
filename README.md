@@ -14,7 +14,7 @@ PHP: >=7.3
 $ composer require rockbuzz/lara-rbac
 ```
 
-Can publish migration and config files
+Publish migration and config files
 
 ```
 $ php artisan vendor:publish --provider="Rockbuzz\LaraRbac\ServiceProvider"

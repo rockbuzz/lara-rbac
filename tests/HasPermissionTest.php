@@ -2,10 +2,10 @@
 
 namespace Tests;
 
+use Tests\Models\Workspace;
+use Rockbuzz\LaraRbac\Models\{Role, Permission};
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Rockbuzz\LaraRbac\Models\Permission;
-use Tests\Models\Workspace;
 
 class HasPermissionTest extends TestCase
 {
@@ -13,13 +13,31 @@ class HasPermissionTest extends TestCase
     {
         $user = $this->createUser();
 
+        $permissionPostStore = Permission::create(['name' => 'create.post']);
+
+        $workspace = Workspace::create(['name' => 'Workspace']);
+
+        \DB::table('permission_user')->insert([
+            'user_id' => $user->id,
+            'permission_id' => $permissionPostStore->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertInstanceOf(BelongsToMany::class, $user->permissions());
+        $this->assertContains($permissionPostStore->id, $user->permissions()->pluck('id'));
+    }
+
+    public function testUserPermissionsForResource()
+    {
+        $user = $this->createUser();
+
         $permissionPostStore = Permission::create([
             'name' => 'create.post'
         ]);
 
-        $workspace = Workspace::create([
-            'name' => 'Workspace'
-        ]);
+        $otherWorkspace = Workspace::create(['name' => 'Other Workspace']);
+        $workspace = Workspace::create(['name' => 'Workspace']);
 
         \DB::table('permission_user')->insert([
             'user_id' => $user->id,
@@ -30,23 +48,18 @@ class HasPermissionTest extends TestCase
 
         $this->assertInstanceOf(BelongsToMany::class, $user->permissions($workspace));
         $this->assertContains($permissionPostStore->id, $user->permissions($workspace)->pluck('id'));
+        $this->assertNotContains($permissionPostStore->id, $user->permissions($otherWorkspace)->pluck('id'));
     }
 
     public function testUserHasPermissions()
     {
         $user = $this->createUser();
 
-        $permissionPostStore = Permission::create([
-            'name' => 'post.store'
-        ]);
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
 
-        Permission::create([
-            'name' => 'post.update'
-        ]);
+        Permission::create(['name' => 'post.update']);
 
-        $workspace = Workspace::create([
-            'name' => 'Workspace'
-        ]);
+        $workspace = Workspace::create(['name' => 'Workspace']);
 
         \DB::table('permission_user')->insert([
             'user_id' => $user->id,
@@ -62,17 +75,42 @@ class HasPermissionTest extends TestCase
         $this->assertFalse($user->hasPermission('post.update', $workspace));
     }
 
+    public function testUserHasPermissionsForRole()
+    {
+        $user = $this->createUser();
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        $role = Role::create(['name' => 'admin']);
+
+        \DB::table('permission_role')->insert([
+            'role_id' => $role->id,
+            'permission_id' => $permissionPostStore->id
+        ]);
+
+        $workspace = Workspace::create(['name' => 'Workspace']);
+
+        \DB::table('role_user')->insert([
+            'role_id' => $role->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertTrue($user->hasPermission('post.store', $workspace));
+        $this->assertTrue($user->hasPermission('post.update|post.store', $workspace));
+        $this->assertTrue($user->hasPermission($permissionPostStore, $workspace));
+        $this->assertFalse($user->hasPermission('post.update', $workspace));
+        $this->assertFalse($user->hasPermission('post.update', $workspace));
+    }
+
     public function testUserAttachPermission()
     {
         $user = $this->createUser();
 
-        $permissionPostStore = Permission::create([
-            'name' => 'post.store'
-        ]);
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
 
-        $workspace = Workspace::create([
-            'name' => 'Workspace'
-        ]);
+        $workspace = Workspace::create(['name' => 'Workspace']);
 
         $user->attachPermission($permissionPostStore, $workspace);
 
@@ -92,17 +130,11 @@ class HasPermissionTest extends TestCase
     {
         $user = $this->createUser();
 
-        $permissionPostStore = Permission::create([
-            'name' => 'post.store'
-        ]);
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
 
-        $permissionPostUpdate = Permission::create([
-            'name' => 'post.update'
-        ]);
+        $permissionPostUpdate = Permission::create(['name' => 'post.update']);
 
-        $workspace = Workspace::create([
-            'name' => 'Workspace'
-        ]);
+        $workspace = Workspace::create(['name' => 'Workspace']);
 
         $user->attachPermission([$permissionPostStore, $permissionPostUpdate], $workspace);
 
@@ -129,17 +161,11 @@ class HasPermissionTest extends TestCase
     {
         $user = $this->createUser();
 
-        $permissionPostStore = Permission::create([
-            'name' => 'post.store'
-        ]);
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
 
-        $permissionPostUpdate = Permission::create([
-            'name' => 'admin'
-        ]);
+        $permissionPostUpdate = Permission::create(['name' => 'admin']);
 
-        $workspace = Workspace::create([
-            'name' => 'Workspace'
-        ]);
+        $workspace = Workspace::create(['name' => 'Workspace']);
 
         \DB::table('role_user')->insert([
             'user_id' => $user->id,
@@ -173,17 +199,11 @@ class HasPermissionTest extends TestCase
     {
         $user = $this->createUser();
 
-        $permissionPostStore = Permission::create([
-            'name' => 'post.store'
-        ]);
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
 
-        $permissionPostUpdate = Permission::create([
-            'name' => 'post.update'
-        ]);
+        $permissionPostUpdate = Permission::create(['name' => 'post.update']);
 
-        $workspace = Workspace::create([
-            'name' => 'Workspace Name'
-        ]);
+        $workspace = Workspace::create(['name' => 'Workspace Name']);
 
         \DB::table('permission_user')->insert([
             'permission_id' => $permissionPostStore->id,
@@ -199,9 +219,7 @@ class HasPermissionTest extends TestCase
             'resource_type' => Workspace::class
         ]);
 
-        $otherWorkspace = Workspace::create([
-            'name' => 'Workspace'
-        ]);
+        $otherWorkspace = Workspace::create(['name' => 'Workspace']);
 
         \DB::table('permission_user')->insert([
             'permission_id' => $permissionPostStore->id,
