@@ -9,11 +9,13 @@ class ServiceProvider extends SupportServiceProvider
 {
     public function boot()
     {
-        $this->publishes([
-            __DIR__ . '/database/migrations/2020_02_15_000000_create_rbac_table.php' =>
-                database_path('migrations') . '/' .
-                now()->format('Y_m_d_his') . '_create_'. config('rbac.tables.prefix') .'rbac_table.php'
-        ], 'migrations');
+        if (! class_exists('CreateRbacTables')) {
+            $this->publishes([
+                __DIR__ . '/database/migrations/2020_02_15_000000_create_rbac_tables.php' =>
+                    database_path('migrations') . '/' .
+                    now()->format('Y_m_d_his') . '_create_'. config('rbac.tables.prefix') .'rbac_tables.php'
+            ], 'migrations');
+        }
 
         $this->publishes([
             __DIR__ . '/config/rbac.php' => config_path('rbac.php')
