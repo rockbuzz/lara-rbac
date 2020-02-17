@@ -4,16 +4,23 @@ namespace Rockbuzz\LaraRbac;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider as SupportServiceProvider;
+use Illuminate\Filesystem\Filesystem;
 
 class ServiceProvider extends SupportServiceProvider
 {
-    public function boot()
+    public function boot(Filesystem $filesystem)
     {
-        if (! class_exists('CreateRbacTables')) {
+        $prefix = config('rbac.tables.prefix');
+        $projectPath = database_path('migrations') . DIRECTORY_SEPARATOR;
+        $localPath = __DIR__ . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'migrations' .
+            DIRECTORY_SEPARATOR;
+
+        if (! $this->hasMigrationInProject($projectPath, $filesystem)) {
+            $this->loadMigrationsFrom($localPath . '2020_02_15_000000_create_rbac_tables.php');
+
             $this->publishes([
-                __DIR__ . '/database/migrations/2020_02_15_000000_create_rbac_tables.php' =>
-                    database_path('migrations') . '/' .
-                    now()->format('Y_m_d_his') . '_create_'. config('rbac.tables.prefix') .'rbac_tables.php'
+                $localPath . '2020_02_15_000000_create_rbac_tables.php' =>
+                    $projectPath . now()->format('Y_m_d_his') . '_create_'. $prefix .'rbac_tables.php'
             ], 'migrations');
         }
 
@@ -48,5 +55,10 @@ class ServiceProvider extends SupportServiceProvider
         return array_map(function ($parameter) {
             return trim($parameter);
         }, $parameters);
+    }
+
+    private function hasMigrationInProject(string $path, Filesystem $filesystem)
+    {
+        return count($filesystem->glob($path . '*_create_rbac_tables.php')) > 0;
     }
 }
