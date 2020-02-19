@@ -28,17 +28,17 @@ class CreateRbacTables extends Migration
         });
 
         Schema::create($prefix . 'permission_role', function (Blueprint $table) {
-            $table->uuid('role_id');
+            $table->uuid('role_id')->index();
             $table->foreign('role_id')
                 ->references('id')
                 ->on('roles')
                 ->onDelete('cascade');
-            $table->uuid('permission_id');
+            $table->uuid('permission_id')->index();
             $table->foreign('permission_id')
                 ->references('id')
                 ->on('permissions')
                 ->onDelete('cascade');
-            $table->primary(['permission_id', 'role_id'], 'permission_role_primary');
+            $table->unique(['permission_id', 'role_id'], 'permission_role_unique');
             $table->index(['permission_id', 'role_id'], 'permission_role_index');
         });
 
@@ -53,10 +53,20 @@ class CreateRbacTables extends Migration
                 ->references('id')
                 ->on('users')
                 ->onDelete('cascade');
-            $table->uuid('resource_id')->index();
-            $table->string('resource_type')->index();
-            $table->primary(['user_id', 'role_id', 'resource_id', 'resource_type'], 'role_user_resource_primary');
-            $table->index(['role_id', 'user_id', 'resource_id', 'resource_type'], 'role_user_resource_index');
+            $table->uuid(config('rbac.tables.morph_columns.id', 'resource_id'))->index();
+            $table->string(config('rbac.tables.morph_columns.type', 'resource_type'))->index();
+            $table->unique([
+                'role_id',
+                'user_id',
+                config('rbac.tables.morph_columns.id', 'resource_id'),
+                config('rbac.tables.morph_columns.type', 'resource_type')
+            ], 'role_user_resource_unique');
+            $table->index([
+                'role_id',
+                'user_id',
+                config('rbac.tables.morph_columns.id', 'resource_id'),
+                config('rbac.tables.morph_columns.type', 'resource_type')
+            ], 'role_user_resource_index');
         });
 
         Schema::create($prefix . 'permission_user', function (Blueprint $table) {
@@ -70,10 +80,20 @@ class CreateRbacTables extends Migration
                 ->references('id')
                 ->on('users')
                 ->onDelete('cascade');
-            $table->uuid('resource_id')->index();
-            $table->string('resource_type')->index();
-            $table->primary(['user_id', 'permission_id', 'resource_id', 'resource_type'], 'permission_user_resource_primary');
-            $table->index(['user_id', 'permission_id', 'resource_id', 'resource_type'], 'permission_role_resource_index');
+            $table->uuid(config('rbac.tables.morph_columns.id', 'resource_id'))->index();
+            $table->string(config('rbac.tables.morph_columns.type', 'resource_type'))->index();
+            $table->unique([
+                'permission_id',
+                'user_id',
+                config('rbac.tables.morph_columns.id', 'resource_id'),
+                config('rbac.tables.morph_columns.type', 'resource_type')
+            ], 'permission_user_resource_unique');
+            $table->index([
+                'permission_id',
+                'user_id',
+                config('rbac.tables.morph_columns.id', 'resource_id'),
+                config('rbac.tables.morph_columns.type', 'resource_type')
+            ], 'permission_role_resource_index');
         });
     }
 

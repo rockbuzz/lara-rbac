@@ -18,11 +18,14 @@ trait HasPermission
         $belongsToMany = $this->belongsToMany(config('rbac.models.permission'));
 
         if ($resource) {
-            $belongsToMany->wherePivot('resource_id', $resource->id)
-                ->wherePivot('resource_type', get_class($resource));
+            $belongsToMany->wherePivot(config('rbac.tables.morph_columns.id', 'resource_id'), $resource->id)
+                ->wherePivot(config('rbac.tables.morph_columns.type', 'resource_type'), get_class($resource));
         }
 
-        return $belongsToMany->withPivot(['resource_id', 'resource_type']);
+        return $belongsToMany->withPivot([
+            config('rbac.tables.morph_columns.id', 'resource_id'),
+            config('rbac.tables.morph_columns.type', 'resource_type')
+        ]);
     }
 
     /**
@@ -61,8 +64,8 @@ trait HasPermission
 
             $this->permissions($resource)->attach([
                 $permission->id => [
-                    'resource_id' => $resource->id,
-                    'resource_type' => get_class($resource)
+                    config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
+                    config('rbac.tables.morph_columns.type', 'resource_type') => get_class($resource)
                 ]
             ]);
         }
@@ -120,8 +123,8 @@ trait HasPermission
             Permission::findOrFail($permission);
 
         $data[$permission->id] = [
-            'resource_id' => $resource->id,
-            'resource_type' => get_class($resource)
+            config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
+            config('rbac.tables.morph_columns.type', 'resource_type') => get_class($resource)
         ];
         return $data;
     }

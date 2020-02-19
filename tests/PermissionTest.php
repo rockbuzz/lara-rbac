@@ -115,4 +115,27 @@ class PermissionTest extends TestCase
 
         $this->assertTrue($permission->hasRole("{$roleAdmin->name}|{$roleEditor->name}"));
     }
+
+    public function testPermissionHasRolesUniqueInDatabase()
+    {
+        $role = Role::create([
+            'name' => 'admin'
+        ]);
+
+        $permission = Permission::create([
+            'name' => 'post.create'
+        ]);
+
+        \DB::table('permission_role')->insert([
+            'permission_id' => $permission->id,
+            'role_id' => $role->id
+        ]);
+
+        $this->expectException(\PDOException::class);
+
+        \DB::table('permission_role')->insert([
+            'permission_id' => $permission->id,
+            'role_id' => $role->id
+        ]);
+    }
 }

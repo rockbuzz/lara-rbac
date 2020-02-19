@@ -167,9 +167,9 @@ class HasPermissionTest extends TestCase
 
         $workspace = Workspace::create(['name' => 'Workspace']);
 
-        \DB::table('role_user')->insert([
+        \DB::table('permission_user')->insert([
             'user_id' => $user->id,
-            'role_id' => $permissionPostUpdate->id,
+            'permission_id' => $permissionPostUpdate->id,
             'resource_id' => $workspace->id,
             'resource_type' => Workspace::class
         ]);
@@ -249,6 +249,31 @@ class HasPermissionTest extends TestCase
             'permission_id' => $permissionPostStore->id,
             'user_id' => $user->id,
             'resource_id' => $otherWorkspace->id,
+            'resource_type' => Workspace::class
+        ]);
+    }
+
+    public function testUserHasPermissionUniqueInDatabase()
+    {
+        $user = $this->createUser();
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        $workspace = Workspace::create(['name' => 'Workspace Name']);
+
+        \DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(\PDOException::class);
+
+        \DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
             'resource_type' => Workspace::class
         ]);
     }

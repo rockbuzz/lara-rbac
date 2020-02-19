@@ -233,4 +233,29 @@ class HasRoleTest extends TestCase
             'resource_type' => Workspace::class
         ]);
     }
+
+    public function testUserHasRoleUniqueInDatabase()
+    {
+        $user = $this->createUser();
+
+        $role = Role::create(['name' => 'admin']);
+
+        $workspace = Workspace::create(['name' => 'Workspace Name']);
+
+        \DB::table('role_user')->insert([
+            'role_id' => $role->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(\PDOException::class);
+
+        \DB::table('role_user')->insert([
+            'role_id' => $role->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+    }
 }

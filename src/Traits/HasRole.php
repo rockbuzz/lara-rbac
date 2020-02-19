@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Rockbuzz\LaraRbac\Traits;
 
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Rockbuzz\LaraRbac\Models\Role;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 trait HasRole
@@ -19,11 +19,14 @@ trait HasRole
         $belongsToMany = $this->belongsToMany(config('rbac.models.role'));
 
         if ($resource) {
-            $belongsToMany->wherePivot('resource_id', $resource->id)
-                ->wherePivot('resource_type', get_class($resource));
+            $belongsToMany->wherePivot(config('rbac.tables.morph_columns.id', 'resource_id'), $resource->id)
+                ->wherePivot(config('rbac.tables.morph_columns.type', 'resource_type'), get_class($resource));
         }
 
-        return $belongsToMany->withPivot(['resource_id', 'resource_type']);
+        return $belongsToMany->withPivot([
+            config('rbac.tables.morph_columns.id', 'resource_id'),
+            config('rbac.tables.morph_columns.type', 'resource_type')
+        ]);
     }
 
     /**
@@ -50,8 +53,8 @@ trait HasRole
 
             $this->roles($resource)->attach([
                 $role->id => [
-                    'resource_id' => $resource->id,
-                    'resource_type' => get_class($resource)
+                    config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
+                    config('rbac.tables.morph_columns.type', 'resource_type') => get_class($resource)
                 ]
             ]);
         }
@@ -107,8 +110,8 @@ trait HasRole
         $role = is_a($role, Role::class) ? $role : Role::findOrFail($role);
 
         $data[$role->id] = [
-            'resource_id' => $resource->id,
-            'resource_type' => get_class($resource)
+            config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
+            config('rbac.tables.morph_columns.type', 'resource_type') => get_class($resource)
         ];
         return $data;
     }
