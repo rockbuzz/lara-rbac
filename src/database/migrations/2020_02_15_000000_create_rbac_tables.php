@@ -13,21 +13,21 @@ class CreateRbacTables extends Migration
      */
     public function up()
     {
-        $prefix = config('rbac.tables.prefix');
+        $tables = $this->getConfigTables();
 
-        Schema::create($prefix . 'roles', function (Blueprint $table) {
+        Schema::create($tables['roles'], function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->timestamps();
         });
 
-        Schema::create($prefix . 'permissions', function (Blueprint $table) {
+        Schema::create($tables['permissions'], function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->timestamps();
         });
 
-        Schema::create($prefix . 'permission_role', function (Blueprint $table) {
+        Schema::create($tables['permission_role'], function (Blueprint $table) {
             $table->uuid('role_id')->index();
             $table->foreign('role_id')
                 ->references('id')
@@ -42,7 +42,7 @@ class CreateRbacTables extends Migration
             $table->index(['permission_id', 'role_id'], 'permission_role_index');
         });
 
-        Schema::create($prefix . 'role_user', function (Blueprint $table) {
+        Schema::create($tables['role_user'], function (Blueprint $table) {
             $table->uuid('role_id')->index();
             $table->foreign('role_id')
                 ->references('id')
@@ -69,7 +69,7 @@ class CreateRbacTables extends Migration
             ], 'role_user_resource_index');
         });
 
-        Schema::create($prefix . 'permission_user', function (Blueprint $table) {
+        Schema::create($tables['permission_user'], function (Blueprint $table) {
             $table->uuid('permission_id')->index();
             $table->foreign('permission_id')
                 ->references('id')
@@ -104,12 +104,21 @@ class CreateRbacTables extends Migration
      */
     public function down()
     {
-        $prefix = config('rbac.tables.prefix');
+        $tables = $this->getConfigTables();
 
-        Schema::dropIfExists($prefix . 'permission_user');
-        Schema::dropIfExists($prefix . 'role_user');
-        Schema::dropIfExists($prefix . 'permission_role');
-        Schema::dropIfExists($prefix . 'permissions');
-        Schema::dropIfExists($prefix . 'roles');
+        Schema::dropIfExists($tables['permission_user']);
+        Schema::dropIfExists($tables['role_user']);
+        Schema::dropIfExists($tables['permission_role']);
+        Schema::dropIfExists($tables['permissions']);
+        Schema::dropIfExists($tables['roles']);
+    }
+
+    /**
+     * @return \Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|mixed
+     */
+    private function getConfigTables()
+    {
+        $tables = config('rbac.tables');
+        return $tables;
     }
 }

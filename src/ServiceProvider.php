@@ -3,14 +3,13 @@
 namespace Rockbuzz\LaraRbac;
 
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\ServiceProvider as SupportServiceProvider;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\ServiceProvider as SupportServiceProvider;
 
 class ServiceProvider extends SupportServiceProvider
 {
     public function boot(Filesystem $filesystem)
     {
-        $prefix = config('rbac.tables.prefix');
         $projectPath = database_path('migrations') . DIRECTORY_SEPARATOR;
         $localPath = __DIR__ . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'migrations' .
             DIRECTORY_SEPARATOR;
@@ -20,7 +19,7 @@ class ServiceProvider extends SupportServiceProvider
 
             $this->publishes([
                 $localPath . '2020_02_15_000000_create_rbac_tables.php' =>
-                    $projectPath . now()->format('Y_m_d_his') . '_create_'. $prefix .'rbac_tables.php'
+                    $projectPath . now()->format('Y_m_d_his') . '_create_rbac_tables.php'
             ], 'migrations');
         }
 
