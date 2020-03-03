@@ -2,8 +2,8 @@
 
 namespace Tests\Models;
 
+use Rockbuzz\LaraUuid\Traits\Uuid;
 use Illuminate\Database\Eloquent\Model;
-use Rockbuzz\LaraRbac\Traits\Uuid;
 
 class Workspace extends Model
 {

@@ -2,10 +2,10 @@
 
 namespace Tests;
 
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Rockbuzz\LaraRbac\Models\Permission;
+use Rockbuzz\LaraUuid\Traits\Uuid;
 use Rockbuzz\LaraRbac\Models\Role;
-use Rockbuzz\LaraRbac\Traits\Uuid;
+use Rockbuzz\LaraRbac\Models\Permission;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class PermissionTest extends TestCase
 {

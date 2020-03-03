@@ -2,9 +2,9 @@
 
 namespace Rockbuzz\LaraRbac\Models;
 
+use Rockbuzz\LaraUuid\Traits\Uuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Rockbuzz\LaraRbac\Traits\Uuid;
 
 class Role extends Model
 {
