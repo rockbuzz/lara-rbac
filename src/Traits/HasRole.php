@@ -49,7 +49,9 @@ trait HasRole
         if (is_array($role)) {
             $this->attachRoles($role, $resource);
         } else {
-            $role = is_a($role, Role::class) ? $role : Role::findOrFail($role);
+            $role = is_a($role, Role::class) ?
+                $role :
+                resolve(config('rbac.models.role'))::findOrFail($role);
 
             $this->roles($resource)->attach([
                 $role->id => [
@@ -107,7 +109,9 @@ trait HasRole
      */
     private function mountDataForRole($role, Model $resource, array $data): array
     {
-        $role = is_a($role, Role::class) ? $role : Role::findOrFail($role);
+        $role = is_a($role, Role::class) ?
+            $role :
+            resolve(config('rbac.models.permission'))::findOrFail($role);
 
         $data[$role->id] = [
             config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,

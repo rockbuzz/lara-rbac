@@ -27,31 +27,31 @@ class CreateRbacTables extends Migration
             $table->timestamps();
         });
 
-        Schema::create($tables['permission_role'], function (Blueprint $table) {
+        Schema::create($tables['permission_role'], function (Blueprint $table) use ($tables) {
             $table->uuid('role_id')->index();
             $table->foreign('role_id')
                 ->references('id')
-                ->on('roles')
+                ->on($tables['roles'])
                 ->onDelete('cascade');
             $table->uuid('permission_id')->index();
             $table->foreign('permission_id')
                 ->references('id')
-                ->on('permissions')
+                ->on($tables['permissions'])
                 ->onDelete('cascade');
             $table->unique(['permission_id', 'role_id'], 'permission_role_unique');
             $table->index(['permission_id', 'role_id'], 'permission_role_index');
         });
 
-        Schema::create($tables['role_user'], function (Blueprint $table) {
+        Schema::create($tables['role_user'], function (Blueprint $table) use ($tables) {
             $table->uuid('role_id')->index();
             $table->foreign('role_id')
                 ->references('id')
-                ->on('roles')
+                ->on($tables['roles'])
                 ->onDelete('cascade');
             $table->uuid('user_id')->index();
             $table->foreign('user_id')
                 ->references('id')
-                ->on('users')
+                ->on($tables['users'])
                 ->onDelete('cascade');
             $table->uuid(config('rbac.tables.morph_columns.id', 'resource_id'))->index();
             $table->string(config('rbac.tables.morph_columns.type', 'resource_type'))->index();
@@ -69,16 +69,16 @@ class CreateRbacTables extends Migration
             ], 'role_user_resource_index');
         });
 
-        Schema::create($tables['permission_user'], function (Blueprint $table) {
+        Schema::create($tables['permission_user'], function (Blueprint $table) use ($tables) {
             $table->uuid('permission_id')->index();
             $table->foreign('permission_id')
                 ->references('id')
-                ->on('permissions')
+                ->on($tables['permissions'])
                 ->onDelete('cascade');
             $table->uuid('user_id')->index();
             $table->foreign('user_id')
                 ->references('id')
-                ->on('users')
+                ->on($tables['users'])
                 ->onDelete('cascade');
             $table->uuid(config('rbac.tables.morph_columns.id', 'resource_id'))->index();
             $table->string(config('rbac.tables.morph_columns.type', 'resource_type'))->index();

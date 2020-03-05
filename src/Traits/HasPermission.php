@@ -60,7 +60,9 @@ trait HasPermission
         if (is_array($permission)) {
             $this->attachPermissions($permission, $resource);
         } else {
-            $permission = is_a($permission, Permission::class) ? $permission : Permission::findOrFail($permission);
+            $permission = is_a($permission, Permission::class) ?
+                $permission :
+                resolve(config('rbac.models.permission'))::findOrFail($permission);
 
             $this->permissions($resource)->attach([
                 $permission->id => [
@@ -120,7 +122,7 @@ trait HasPermission
     {
         $permission = is_a($permission, Permission::class) ?
             $permission :
-            Permission::findOrFail($permission);
+            resolve(config('rbac.models.permission'))::findOrFail($permission);
 
         $data[$permission->id] = [
             config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
