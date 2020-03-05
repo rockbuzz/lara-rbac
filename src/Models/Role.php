@@ -22,6 +22,14 @@ class Role extends Model
         'id' => 'string',
     ];
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        $this->setTable(config('rbac.tables.roles'));
+    }
+
+
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class);

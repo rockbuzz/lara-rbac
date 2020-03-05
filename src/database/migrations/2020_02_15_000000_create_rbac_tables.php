@@ -113,12 +113,8 @@ class CreateRbacTables extends Migration
         Schema::dropIfExists($tables['roles']);
     }
 
-    /**
-     * @return \Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|mixed
-     */
-    private function getConfigTables()
+    private function getConfigTables(): array
     {
-        $tables = config('rbac.tables');
-        return $tables;
+        return config('rbac.tables');
     }
 }
