@@ -4,7 +4,6 @@ namespace Tests;
 
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use Rockbuzz\LaraRbac\ServiceProvider;
-use Tests\Models\User;
 
 class TestCase extends OrchestraTestCase
 {
@@ -21,8 +20,11 @@ class TestCase extends OrchestraTestCase
 
         $this->loadMigrationsFrom([
             '--database' => 'testing',
-            '--path' => realpath(__DIR__ . '/migrations'),
+            '--path' => realpath(__DIR__ . '/database/migrations'),
         ]);
+
+        $this->withFactories(__DIR__ . '/database/factories');
+        $this->withFactories(__DIR__ . '/../src/database/factories');
     }
 
 
@@ -37,16 +39,8 @@ class TestCase extends OrchestraTestCase
         return [ServiceProvider::class];
     }
 
-    /**
-     * @return mixed
-     */
-    protected function createUser()
+    protected function create(string $class, array $attributes = [], int $times = null)
     {
-        $user = User::create([
-            'name' => 'name test',
-            'email' => 'user.test@email.com',
-            'password' => bcrypt(123456),
-        ]);
-        return $user;
+        return factory($class, $times)->create($attributes);
     }
 }

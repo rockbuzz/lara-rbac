@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Tests\Models\User;
 use Tests\Models\Workspace;
 use Rockbuzz\LaraRbac\Models\{Role, Permission};
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -11,7 +12,7 @@ class HasPermissionTest extends TestCase
 {
     public function testUserPermissions()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create(['name' => 'create.post']);
 
@@ -30,7 +31,7 @@ class HasPermissionTest extends TestCase
 
     public function testUserPermissionsForResource()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create([
             'name' => 'create.post'
@@ -53,7 +54,7 @@ class HasPermissionTest extends TestCase
 
     public function testUserHasPermissions()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create(['name' => 'post.store']);
 
@@ -77,7 +78,7 @@ class HasPermissionTest extends TestCase
 
     public function testUserHasPermissionsForRole()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create(['name' => 'post.store']);
 
@@ -106,7 +107,7 @@ class HasPermissionTest extends TestCase
 
     public function testUserAttachPermission()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create(['name' => 'post.store']);
 
@@ -128,7 +129,7 @@ class HasPermissionTest extends TestCase
 
     public function testUserAttachPermissions()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create(['name' => 'post.store']);
 
@@ -159,7 +160,7 @@ class HasPermissionTest extends TestCase
 
     public function testUserSyncPermissions()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create(['name' => 'post.store']);
 
@@ -197,7 +198,7 @@ class HasPermissionTest extends TestCase
 
     public function testUserDetachPermissions()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create(['name' => 'post.store']);
 
@@ -255,7 +256,7 @@ class HasPermissionTest extends TestCase
 
     public function testUserHasPermissionUniqueInDatabase()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create(['name' => 'post.store']);
 

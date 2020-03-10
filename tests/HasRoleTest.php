@@ -4,6 +4,7 @@ namespace Tests;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Tests\Models\User;
 use Tests\Models\Workspace;
 use Rockbuzz\LaraRbac\Models\Role;
 
@@ -11,7 +12,7 @@ class HasRoleTest extends TestCase
 {
     public function testUserRoles()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $roleAdmin = Role::create([
             'name' => 'admin'
@@ -35,7 +36,7 @@ class HasRoleTest extends TestCase
 
     public function testUserHasRole()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         Role::create([
             'name' => 'super'
@@ -65,7 +66,7 @@ class HasRoleTest extends TestCase
 
     public function testUserAttachRole()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $roleAdmin = Role::create([
             'name' => 'admin'
@@ -91,7 +92,7 @@ class HasRoleTest extends TestCase
 
     public function testUserAttachRoles()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $roleSuper = Role::create([
             'name' => 'super'
@@ -128,7 +129,7 @@ class HasRoleTest extends TestCase
 
     public function testUserSyncRoles()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $roleSuper = Role::create([
             'name' => 'super'
@@ -172,7 +173,7 @@ class HasRoleTest extends TestCase
 
     public function testUserDetachRoles()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $roleSuper = Role::create([
             'name' => 'super'
@@ -236,7 +237,7 @@ class HasRoleTest extends TestCase
 
     public function testUserHasRoleUniqueInDatabase()
     {
-        $user = $this->createUser();
+        $user = $this->create(User::class);
 
         $role = Role::create(['name' => 'admin']);
 

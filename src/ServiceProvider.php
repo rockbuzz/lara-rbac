@@ -24,7 +24,7 @@ class ServiceProvider extends SupportServiceProvider
         }
 
         $this->publishes([
-            __DIR__ . '/config/rbac.php' => config_path('rbac.php')
+            __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . ' rbac.php' => config_path('rbac.php')
         ], 'config');
 
         Blade::if('hasrole', function ($expression) {
