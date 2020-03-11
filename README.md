@@ -6,7 +6,7 @@ Role Based Access Control per resource
 
 ## Requirements
 
-PHP: >=7.3
+PHP >=7.3
 
 ## Install
 
@@ -24,10 +24,10 @@ $ php artisan migrate
 Add Rbac trait to your `User` model
 
 ```php
-use Rockbuzz\LaraRbac\Contracts\User as UserInterface;
 use Rockbuzz\LaraRbac\Traits\HasRbac;
+use Rockbuzz\LaraRbac\Contracts\HasRbac as RbacInterface;
 	
-class User extends Authenticatable implements UserInterface
+class User extends Authenticatable implements RbacInterface
 {
     use HasRbac;
     ...

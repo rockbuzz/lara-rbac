@@ -3,10 +3,10 @@
 namespace Tests\Models;
 
 use Rockbuzz\LaraRbac\Traits\HasRbac;
-use Rockbuzz\LaraRbac\Contracts\User as UserInterface;
+use Rockbuzz\LaraRbac\Contracts\HasRbac as HasRbacInterface;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable implements UserInterface
+class User extends Authenticatable implements HasRbacInterface
 {
     use HasRbac;
 

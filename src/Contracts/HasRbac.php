@@ -8,7 +8,7 @@ use Rockbuzz\LaraRbac\Models\{Permission, Role};
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\{Model, ModelNotFoundException};
 
-interface User
+interface HasRbac
 {
     /**
      * @param Model|null $resource
