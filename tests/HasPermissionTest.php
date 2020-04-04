@@ -105,7 +105,7 @@ class HasPermissionTest extends TestCase
         $this->assertFalse($user->hasPermission('post.update', $workspace));
     }
 
-    public function testUserAttachPermission()
+    public function testUserAttachPermissionWithInstance()
     {
         $user = $this->create(User::class);
 
@@ -127,7 +127,29 @@ class HasPermissionTest extends TestCase
         $user->attachPermission([0], $workspace);
     }
 
-    public function testUserAttachPermissions()
+    public function testUserAttachPermissionWithId()
+    {
+        $user = $this->create(User::class);
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        $workspace = Workspace::create(['name' => 'Workspace']);
+
+        $user->attachPermission($permissionPostStore->id, $workspace);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->attachPermission([0], $workspace);
+    }
+
+    public function testUserAttachPermissionsWithInstance()
     {
         $user = $this->create(User::class);
 
@@ -158,7 +180,38 @@ class HasPermissionTest extends TestCase
         $user->attachPermission([0], $workspace);
     }
 
-    public function testUserSyncPermissions()
+    public function testUserAttachPermissionsWithId()
+    {
+        $user = $this->create(User::class);
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        $permissionPostUpdate = Permission::create(['name' => 'post.update']);
+
+        $workspace = Workspace::create(['name' => 'Workspace']);
+
+        $user->attachPermission([$permissionPostStore->id, $permissionPostUpdate->id], $workspace);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostUpdate->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->attachPermission([0], $workspace);
+    }
+
+    public function testUserSyncPermissionsWithInstance()
     {
         $user = $this->create(User::class);
 
@@ -176,6 +229,44 @@ class HasPermissionTest extends TestCase
         ]);
 
         $user->syncPermissions([$permissionPostStore, $permissionPostUpdate], $workspace);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostUpdate->id,
+            'user_id' => $user->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->syncPermissions([0], $workspace);
+    }
+
+    public function testUserSyncPermissionsWithId()
+    {
+        $user = $this->create(User::class);
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        $permissionPostUpdate = Permission::create(['name' => 'admin']);
+
+        $workspace = Workspace::create(['name' => 'Workspace']);
+
+        \DB::table('permission_user')->insert([
+            'user_id' => $user->id,
+            'permission_id' => $permissionPostUpdate->id,
+            'resource_id' => $workspace->id,
+            'resource_type' => Workspace::class
+        ]);
+
+        $user->syncPermissions([$permissionPostStore->id, $permissionPostUpdate->id], $workspace);
 
         $this->assertDatabaseHas('permission_user', [
             'permission_id' => $permissionPostStore->id,

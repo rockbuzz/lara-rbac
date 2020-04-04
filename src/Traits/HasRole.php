@@ -111,7 +111,7 @@ trait HasRole
     {
         $role = is_a($role, Role::class) ?
             $role :
-            resolve(config('rbac.models.permission'))::findOrFail($role);
+            resolve(config('rbac.models.role'))::findOrFail($role);
 
         $data[$role->id] = [
             config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
