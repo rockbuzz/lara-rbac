@@ -10,9 +10,8 @@ class ServiceProvider extends SupportServiceProvider
 {
     public function boot(Filesystem $filesystem)
     {
-        $projectPath = database_path('migrations') . DIRECTORY_SEPARATOR;
-        $localPath = __DIR__ . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'migrations' .
-            DIRECTORY_SEPARATOR;
+        $projectPath = database_path('migrations') . '/';
+        $localPath = __DIR__ . '/database/migrations/';
 
         if (! $this->hasMigrationInProject($projectPath, $filesystem)) {
             $this->loadMigrationsFrom($localPath . '2020_02_15_000000_create_rbac_tables.php');
@@ -24,7 +23,7 @@ class ServiceProvider extends SupportServiceProvider
         }
 
         $this->publishes([
-            __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . ' rbac.php' => config_path('rbac.php')
+            __DIR__ . '/config/rbac.php' => config_path('rbac.php')
         ], 'config');
 
         Blade::if('hasrole', function ($expression) {

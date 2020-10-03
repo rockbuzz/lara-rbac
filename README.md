@@ -13,11 +13,11 @@ PHP >=7.3
 ```bash
 $ composer require rockbuzz/lara-rbac
 ```
-
-Publish migration and config files
+```
+$ php artisan vendor:publish --provider="Rockbuzz\LaraRbac\ServiceProvider" --tag="migrations"
+```
 
 ```
-$ php artisan vendor:publish --provider="Rockbuzz\LaraRbac\ServiceProvider"
 $ php artisan migrate
 ```
 

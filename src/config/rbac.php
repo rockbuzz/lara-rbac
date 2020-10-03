@@ -9,9 +9,6 @@ return [
         'user' => App\User::class
     ],
     'tables' => [
-        'roles' => 'roles',
-        'permissions' => 'permissions',
-        'permission_role' => 'permission_role',
         'role_user' => 'role_user',
         'permission_user' => 'permission_user',
         'users' => 'users',
