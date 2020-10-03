@@ -4,9 +4,9 @@
     <arg value="p"/>
     <file>src</file>
     <file>tests</file>
-    <exclude-pattern>/tests/Report/*</exclude-pattern>
+    <exclude-pattern>/tests/report/*</exclude-pattern>
     <exclude-pattern>*/src/database/*$</exclude-pattern>
-    <exclude-pattern>*/tests/migrations/*$</exclude-pattern>
+    <exclude-pattern>*/tests/database/migrations/*$</exclude-pattern>
     <rule ref="PSR2"/>
     <rule ref="PSR2.Namespaces.UseDeclaration">
         <exclude-pattern>*</exclude-pattern>
