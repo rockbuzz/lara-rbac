@@ -13,7 +13,7 @@ class Permission extends Model
 
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(config('rbac.models.role'));
+        return $this->belongsToMany(Role::class);
     }
 
     /**

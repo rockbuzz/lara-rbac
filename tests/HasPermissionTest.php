@@ -4,6 +4,7 @@ namespace Tests;
 
 use Tests\Stubs\User;
 use Tests\Stubs\Workspace;
+use Illuminate\Support\Facades\DB;
 use Rockbuzz\LaraRbac\Models\{Role, Permission};
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -18,7 +19,7 @@ class HasPermissionTest extends TestCase
 
         $workspace = Workspace::create(['name' => 'Workspace']);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'user_id' => $user->id,
             'permission_id' => $permissionPostStore->id,
             'resource_id' => $workspace->id,
@@ -40,7 +41,7 @@ class HasPermissionTest extends TestCase
         $otherWorkspace = Workspace::create(['name' => 'Other Workspace']);
         $workspace = Workspace::create(['name' => 'Workspace']);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'user_id' => $user->id,
             'permission_id' => $permissionPostStore->id,
             'resource_id' => $workspace->id,
@@ -62,7 +63,7 @@ class HasPermissionTest extends TestCase
 
         $workspace = Workspace::create(['name' => 'Workspace']);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'user_id' => $user->id,
             'permission_id' => $permissionPostStore->id,
             'resource_id' => $workspace->id,
@@ -84,14 +85,14 @@ class HasPermissionTest extends TestCase
 
         $role = Role::create(['name' => 'admin']);
 
-        \DB::table('permission_role')->insert([
+        DB::table('permission_role')->insert([
             'role_id' => $role->id,
             'permission_id' => $permissionPostStore->id
         ]);
 
         $workspace = Workspace::create(['name' => 'Workspace']);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'role_id' => $role->id,
             'user_id' => $user->id,
             'resource_id' => $workspace->id,
@@ -221,7 +222,7 @@ class HasPermissionTest extends TestCase
 
         $workspace = Workspace::create(['name' => 'Workspace']);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'user_id' => $user->id,
             'permission_id' => $permissionPostUpdate->id,
             'resource_id' => $workspace->id,
@@ -259,7 +260,7 @@ class HasPermissionTest extends TestCase
 
         $workspace = Workspace::create(['name' => 'Workspace']);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'user_id' => $user->id,
             'permission_id' => $permissionPostUpdate->id,
             'resource_id' => $workspace->id,
@@ -297,14 +298,14 @@ class HasPermissionTest extends TestCase
 
         $workspace = Workspace::create(['name' => 'Workspace Name']);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'permission_id' => $permissionPostStore->id,
             'user_id' => $user->id,
             'resource_id' => $workspace->id,
             'resource_type' => Workspace::class
         ]);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'permission_id' => $permissionPostUpdate->id,
             'user_id' => $user->id,
             'resource_id' => $workspace->id,
@@ -313,7 +314,7 @@ class HasPermissionTest extends TestCase
 
         $otherWorkspace = Workspace::create(['name' => 'Workspace']);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'permission_id' => $permissionPostStore->id,
             'user_id' => $user->id,
             'resource_id' => $otherWorkspace->id,
@@ -353,7 +354,7 @@ class HasPermissionTest extends TestCase
 
         $workspace = Workspace::create(['name' => 'Workspace Name']);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'permission_id' => $permissionPostStore->id,
             'user_id' => $user->id,
             'resource_id' => $workspace->id,
@@ -362,7 +363,7 @@ class HasPermissionTest extends TestCase
 
         $this->expectException(\PDOException::class);
 
-        \DB::table('permission_user')->insert([
+        DB::table('permission_user')->insert([
             'permission_id' => $permissionPostStore->id,
             'user_id' => $user->id,
             'resource_id' => $workspace->id,

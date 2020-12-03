@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Illuminate\Support\Facades\DB;
 use Rockbuzz\LaraRbac\Models\Role;
 use Rockbuzz\LaraRbac\Models\Permission;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -44,7 +45,7 @@ class RoleTest extends TestCase
             'name' => 'post.create'
         ]);
 
-        \DB::table('permission_role')->insert([
+        DB::table('permission_role')->insert([
             'permission_id' => $permission->id,
             'role_id' => $role->id
         ]);
@@ -68,7 +69,7 @@ class RoleTest extends TestCase
             'name' => 'post.update'
         ]);
 
-        \DB::table('permission_role')->insert([
+        DB::table('permission_role')->insert([
             'permission_id' => $permission->id,
             'role_id' => $role->id
         ]);
@@ -82,7 +83,7 @@ class RoleTest extends TestCase
             'name' => 'post.delete'
         ]);
 
-        \DB::table('permission_role')->insert([
+        DB::table('permission_role')->insert([
             'permission_id' => $permissionDel->id,
             'role_id' => $role->id
         ]);

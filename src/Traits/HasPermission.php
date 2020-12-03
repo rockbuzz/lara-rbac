@@ -15,16 +15,16 @@ trait HasPermission
      */
     public function permissions(Model $resource = null): BelongsToMany
     {
-        $belongsToMany = $this->belongsToMany(config('rbac.models.permission'));
+        $belongsToMany = $this->belongsToMany(Permission::class);
 
         if ($resource) {
-            $belongsToMany->wherePivot(config('rbac.tables.morph_columns.id', 'resource_id'), $resource->id)
-                ->wherePivot(config('rbac.tables.morph_columns.type', 'resource_type'), get_class($resource));
+            $belongsToMany->wherePivot('resource_id', $resource->id)
+                ->wherePivot('resource_type', get_class($resource));
         }
 
         return $belongsToMany->withPivot([
-            config('rbac.tables.morph_columns.id', 'resource_id'),
-            config('rbac.tables.morph_columns.type', 'resource_type')
+            'resource_id',
+            'resource_type'
         ]);
     }
 
@@ -62,12 +62,12 @@ trait HasPermission
         } else {
             $permission = is_a($permission, Permission::class) ?
                 $permission :
-                resolve(config('rbac.models.permission'))::findOrFail($permission);
+                resolve(Permission::class)::findOrFail($permission);
 
             $this->permissions($resource)->attach([
                 $permission->id => [
-                    config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
-                    config('rbac.tables.morph_columns.type', 'resource_type') => get_class($resource)
+                    'resource_id' => $resource->id,
+                    'resource_type' => get_class($resource)
                 ]
             ]);
         }
@@ -122,11 +122,11 @@ trait HasPermission
     {
         $permission = is_a($permission, Permission::class) ?
             $permission :
-            resolve(config('rbac.models.permission'))::findOrFail($permission);
+            resolve(Permission::class)::findOrFail($permission);
 
         $data[$permission->id] = [
-            config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
-            config('rbac.tables.morph_columns.type', 'resource_type') => get_class($resource)
+            'resource_id' => $resource->id,
+            'resource_type' => get_class($resource)
         ];
         return $data;
     }

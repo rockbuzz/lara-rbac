@@ -16,18 +16,18 @@ trait HasRole
      */
     public function roles(Model $resource = null): BelongsToMany
     {
-        return $this->belongsToMany(config('rbac.models.role'))
+        return $this->belongsToMany(Role::class)
                 ->wherePivot(
-                    config('rbac.tables.morph_columns.id', 'resource_id'), 
+                    'resource_id', 
                     !$resource ? $resource : $resource->id
                 )
                 ->wherePivot(
-                    config('rbac.tables.morph_columns.type', 'resource_type'), 
+                    'resource_type', 
                     !$resource ? $resource : get_class($resource)
                 )
                 ->withPivot([
-                    config('rbac.tables.morph_columns.id', 'resource_id'),
-                    config('rbac.tables.morph_columns.type', 'resource_type')
+                    'resource_id',
+                    'resource_type'
                 ]);
     }
 
@@ -53,12 +53,12 @@ trait HasRole
         } else {
             $role = is_a($role, Role::class) ?
                 $role :
-                resolve(config('rbac.models.role'))::findOrFail($role);
+                resolve(Role::class)::findOrFail($role);
 
             $this->roles($resource)->attach([
                 $role->id => [
-                    config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
-                    config('rbac.tables.morph_columns.type', 'resource_type') => get_class($resource)
+                    'resource_id' => $resource->id,
+                    'resource_type' => get_class($resource)
                 ]
             ]);
         }
@@ -113,11 +113,11 @@ trait HasRole
     {
         $role = is_a($role, Role::class) ?
             $role :
-            resolve(config('rbac.models.role'))::findOrFail($role);
+            resolve(Role::class)::findOrFail($role);
 
         $data[$role->id] = [
-            config('rbac.tables.morph_columns.id', 'resource_id') => $resource->id,
-            config('rbac.tables.morph_columns.type', 'resource_type') => get_class($resource)
+            'resource_id' => $resource->id,
+            'resource_type' => get_class($resource)
         ];
         return $data;
     }
