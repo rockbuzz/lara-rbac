@@ -2,8 +2,8 @@
 
 namespace Tests;
 
-use Tests\Models\User;
-use Tests\Models\Workspace;
+use Tests\Stubs\User;
+use Tests\Stubs\Workspace;
 use Rockbuzz\LaraRbac\Models\{Role, Permission};
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;

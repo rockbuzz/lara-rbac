@@ -16,24 +16,24 @@ class CreateRbacTables extends Migration
         $tables = $this->getConfigTables();
 
         Schema::create('roles', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->bigIncrements('id');
             $table->string('name')->unique();
             $table->timestamps();
         });
 
         Schema::create('permissions', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->bigIncrements('id');
             $table->string('name')->unique();
             $table->timestamps();
         });
 
         Schema::create('permission_role', function (Blueprint $table) use ($tables) {
-            $table->uuid('role_id')->index();
+            $table->unsignedBigInteger('role_id')->index();
             $table->foreign('role_id')
                 ->references('id')
                 ->on('roles')
                 ->onDelete('cascade');
-            $table->uuid('permission_id')->index();
+            $table->unsignedBigInteger('permission_id')->index();
             $table->foreign('permission_id')
                 ->references('id')
                 ->on('permissions')
@@ -42,18 +42,18 @@ class CreateRbacTables extends Migration
         });
 
         Schema::create($tables['role_user'], function (Blueprint $table) use ($tables) {
-            $table->uuid('role_id')->index();
+            $table->unsignedBigInteger('role_id')->index();
             $table->foreign('role_id')
                 ->references('id')
                 ->on('roles')
                 ->onDelete('cascade');
-            $table->uuid('user_id')->index();
+            $table->unsignedBigInteger('user_id')->index();
             $table->foreign('user_id')
                 ->references('id')
                 ->on($tables['users'])
                 ->onDelete('cascade');
-            $table->uuid(config('rbac.tables.morph_columns.id', 'resource_id'))->index();
-            $table->string(config('rbac.tables.morph_columns.type', 'resource_type'))->index();
+            $table->unsignedBigInteger(config('rbac.tables.morph_columns.id', 'resource_id'))->nullable();
+            $table->string(config('rbac.tables.morph_columns.type', 'resource_type'))->nullable();
             $table->unique([
                 'role_id',
                 'user_id',
@@ -63,17 +63,17 @@ class CreateRbacTables extends Migration
         });
 
         Schema::create($tables['permission_user'], function (Blueprint $table) use ($tables) {
-            $table->uuid('permission_id')->index();
+            $table->unsignedBigInteger('permission_id')->index();
             $table->foreign('permission_id')
                 ->references('id')
                 ->on('permissions')
                 ->onDelete('cascade');
-            $table->uuid('user_id')->index();
+            $table->unsignedBigInteger('user_id')->index();
             $table->foreign('user_id')
                 ->references('id')
                 ->on($tables['users'])
                 ->onDelete('cascade');
-            $table->uuid(config('rbac.tables.morph_columns.id', 'resource_id'))->index();
+            $table->unsignedBigInteger(config('rbac.tables.morph_columns.id', 'resource_id'))->index();
             $table->string(config('rbac.tables.morph_columns.type', 'resource_type'))->index();
             $table->unique([
                 'permission_id',

@@ -2,11 +2,12 @@
 
 namespace Tests;
 
+use Tests\Stubs\User;
+use Tests\Stubs\Workspace;
+use Rockbuzz\LaraRbac\Models\Role;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Tests\Models\User;
-use Tests\Models\Workspace;
-use Rockbuzz\LaraRbac\Models\Role;
 
 class HasRoleTest extends TestCase
 {
@@ -22,7 +23,7 @@ class HasRoleTest extends TestCase
             'name' => 'Workspace Name'
         ]);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'user_id' => $user->id,
             'role_id' => $roleAdmin->id,
             'resource_id' => $workspace->id,
@@ -30,8 +31,11 @@ class HasRoleTest extends TestCase
         ]);
 
         $this->assertInstanceOf(BelongsToMany::class, $user->roles($workspace));
+        $this->assertInstanceOf(BelongsToMany::class, $user->roles());
         $this->assertContains($roleAdmin->id, $user->roles($workspace)->pluck('id'));
+        $this->assertNotContains($roleAdmin->id, $user->roles()->pluck('id'));
         $this->assertEquals(1, $user->roles($workspace)->count());
+        $this->assertEquals(0, $user->roles()->count());
     }
 
     public function testUserHasRole()
@@ -50,7 +54,7 @@ class HasRoleTest extends TestCase
             'name' => 'Workspace'
         ]);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'user_id' => $user->id,
             'role_id' => $roleAdmin->id,
             'resource_id' => $workspace->id,
@@ -206,7 +210,7 @@ class HasRoleTest extends TestCase
             'name' => 'Workspace'
         ]);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'user_id' => $user->id,
             'role_id' => $roleAdmin->id,
             'resource_id' => $workspace->id,
@@ -250,7 +254,7 @@ class HasRoleTest extends TestCase
             'name' => 'Workspace'
         ]);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'user_id' => $user->id,
             'role_id' => $roleAdmin->id,
             'resource_id' => $workspace->id,
@@ -293,14 +297,14 @@ class HasRoleTest extends TestCase
             'name' => 'Workspace'
         ]);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'user_id' => $user->id,
             'role_id' => $roleSuper->id,
             'resource_id' => $workspace->id,
             'resource_type' => Workspace::class
         ]);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'user_id' => $user->id,
             'role_id' => $roleAdmin->id,
             'resource_id' => $workspace->id,
@@ -311,7 +315,7 @@ class HasRoleTest extends TestCase
             'name' => 'Workspace'
         ]);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'user_id' => $user->id,
             'role_id' => $roleSuper->id,
             'resource_id' => $otherWorkspace->id,
@@ -350,7 +354,7 @@ class HasRoleTest extends TestCase
 
         $workspace = Workspace::create(['name' => 'Workspace Name']);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'role_id' => $role->id,
             'user_id' => $user->id,
             'resource_id' => $workspace->id,
@@ -359,7 +363,7 @@ class HasRoleTest extends TestCase
 
         $this->expectException(\PDOException::class);
 
-        \DB::table('role_user')->insert([
+        DB::table('role_user')->insert([
             'role_id' => $role->id,
             'user_id' => $user->id,
             'resource_id' => $workspace->id,

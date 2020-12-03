@@ -16,17 +16,19 @@ trait HasRole
      */
     public function roles(Model $resource = null): BelongsToMany
     {
-        $belongsToMany = $this->belongsToMany(config('rbac.models.role'));
-
-        if ($resource) {
-            $belongsToMany->wherePivot(config('rbac.tables.morph_columns.id', 'resource_id'), $resource->id)
-                ->wherePivot(config('rbac.tables.morph_columns.type', 'resource_type'), get_class($resource));
-        }
-
-        return $belongsToMany->withPivot([
-            config('rbac.tables.morph_columns.id', 'resource_id'),
-            config('rbac.tables.morph_columns.type', 'resource_type')
-        ]);
+        return $this->belongsToMany(config('rbac.models.role'))
+                ->wherePivot(
+                    config('rbac.tables.morph_columns.id', 'resource_id'), 
+                    !$resource ? $resource : $resource->id
+                )
+                ->wherePivot(
+                    config('rbac.tables.morph_columns.type', 'resource_type'), 
+                    !$resource ? $resource : get_class($resource)
+                )
+                ->withPivot([
+                    config('rbac.tables.morph_columns.id', 'resource_id'),
+                    config('rbac.tables.morph_columns.type', 'resource_type')
+                ]);
     }
 
     /**

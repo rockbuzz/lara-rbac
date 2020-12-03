@@ -2,32 +2,14 @@
 
 namespace Rockbuzz\LaraRbac\Models;
 
-use Rockbuzz\LaraUuid\Traits\Uuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Permission extends Model
 {
-    use Uuid;
-
-    public $incrementing = false;
-
-    protected $keyType = 'string';
-
     protected $fillable = [
         'name'
     ];
-
-    protected $casts = [
-        'id' => 'string',
-    ];
-
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
-
-        $this->setTable(config('rbac.tables.permissions'));
-    }
 
     public function roles(): BelongsToMany
     {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Models;
+namespace Tests\Stubs;
 
 use Rockbuzz\LaraRbac\Traits\HasRbac;
 use Rockbuzz\LaraRbac\Contracts\HasRbac as HasRbacInterface;

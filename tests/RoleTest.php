@@ -2,7 +2,6 @@
 
 namespace Tests;
 
-use Rockbuzz\LaraUuid\Traits\Uuid;
 use Rockbuzz\LaraRbac\Models\Role;
 use Rockbuzz\LaraRbac\Models\Permission;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -18,25 +17,6 @@ class RoleTest extends TestCase
         $this->role = new Role();
     }
 
-    public function testIfUsesTraits()
-    {
-        $this->assertEquals(
-            [
-                Uuid::class
-            ],
-            array_values(class_uses(Permission::class))
-        );
-    }
-
-    public function testIncrementing()
-    {
-        $this->assertFalse($this->role->incrementing);
-    }
-
-    public function testKeyType()
-    {
-        $this->assertEquals('string', $this->role->getKeyType());
-    }
     public function testRoleFillable()
     {
         $role = Role::create([
@@ -44,11 +24,6 @@ class RoleTest extends TestCase
         ]);
 
         $this->assertEquals(['name'], $role->getFillable());
-    }
-
-    public function testCasts()
-    {
-        $this->assertEquals(['id' => 'string'], $this->role->getCasts());
     }
 
     public function testDates()
