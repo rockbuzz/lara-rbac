@@ -71,8 +71,8 @@ class CreateRbacTables extends Migration
                 ->references('id')
                 ->on('users')
                 ->onDelete('cascade');
-            $table->unsignedBigInteger('resource_id')->index();
-            $table->string('resource_type')->index();
+            $table->unsignedBigInteger('resource_id')->nullable();
+            $table->string('resource_type')->nullable();
             $table->unique([
                 'permission_id',
                 'user_id',

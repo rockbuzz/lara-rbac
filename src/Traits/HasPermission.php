@@ -15,23 +15,25 @@ trait HasPermission
      */
     public function permissions(Model $resource = null): BelongsToMany
     {
-        $belongsToMany = $this->belongsToMany(Permission::class);
-
-        if ($resource) {
-            $belongsToMany->wherePivot('resource_id', $resource->id)
-                ->wherePivot('resource_type', get_class($resource));
-        }
-
-        return $belongsToMany->withPivot([
-            'resource_id',
-            'resource_type'
-        ]);
+        return $this->belongsToMany(Permission::class)
+                ->wherePivot(
+                    'resource_id', 
+                    $resource ? $resource->id : $resource
+                )
+                ->wherePivot(
+                    'resource_type', 
+                    $resource ? get_class($resource) : $resource
+                )
+                ->withPivot([
+                    'resource_id',
+                    'resource_type'
+                ]);
     }
 
     /**
      * @inheritdoc
      */
-    public function hasPermission($permission, Model $resource): bool
+    public function hasPermission($permission, Model $resource = null): bool
     {
         $permission = is_a($permission, Permission::class) ? $permission->name : $permission;
 
@@ -55,7 +57,7 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function attachPermission($permission, Model $resource): void
+    public function attachPermission($permission, Model $resource = null): void
     {
         if (is_array($permission)) {
             $this->attachPermissions($permission, $resource);
@@ -66,8 +68,8 @@ trait HasPermission
 
             $this->permissions($resource)->attach([
                 $permission->id => [
-                    'resource_id' => $resource->id,
-                    'resource_type' => get_class($resource)
+                    'resource_id' => $resource ? $resource->id : $resource,
+                    'resource_type' => $resource ? get_class($resource) : $resource
                 ]
             ]);
         }
@@ -76,7 +78,7 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function syncPermissions(array $permissions, Model $resource): void
+    public function syncPermissions(array $permissions, Model $resource = null): void
     {
         $data = [];
 
@@ -90,7 +92,7 @@ trait HasPermission
     /**
      * @inheritdoc
      */
-    public function detachPermissions(array $permissions, Model $resource): void
+    public function detachPermissions(array $permissions, Model $resource = null): void
     {
         $this->permissions($resource)->detach($permissions);
     }
@@ -101,7 +103,7 @@ trait HasPermission
      * @throws ModelNotFoundException
      * @return void
      */
-    private function attachPermissions(array $permissions, Model $resource): void
+    private function attachPermissions(array $permissions, Model $resource = null): void
     {
         $data = [];
 
@@ -118,15 +120,15 @@ trait HasPermission
      * @param array $data
      * @return array
      */
-    private function mountDataForPermission($permission, Model $resource, array $data): array
+    private function mountDataForPermission($permission, Model $resource = null, array $data): array
     {
         $permission = is_a($permission, Permission::class) ?
             $permission :
             resolve(Permission::class)::findOrFail($permission);
 
         $data[$permission->id] = [
-            'resource_id' => $resource->id,
-            'resource_type' => get_class($resource)
+            'resource_id' => $resource ? $resource->id : $resource,
+            'resource_type' => $resource ? get_class($resource) : $resource
         ];
         return $data;
     }

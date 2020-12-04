@@ -8,14 +8,34 @@ use Illuminate\Support\Facades\DB;
 use Rockbuzz\LaraRbac\Models\{Role, Permission};
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class HasPermissionTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function testUserPermissions()
     {
         $user = $this->create(User::class);
 
-        $permissionPostStore = Permission::create(['name' => 'create.post']);
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        DB::table('permission_user')->insert([
+            'user_id' => $user->id,
+            'permission_id' => $permissionPostStore->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        $this->assertInstanceOf(BelongsToMany::class, $user->permissions());
+        $this->assertContains($permissionPostStore->id, $user->permissions()->pluck('id'));
+    }
+
+    public function testUserPermissionsWithResource()
+    {
+        $user = $this->create(User::class);
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
 
         $workspace = Workspace::create(['name' => 'Workspace']);
 
@@ -26,8 +46,8 @@ class HasPermissionTest extends TestCase
             'resource_type' => Workspace::class
         ]);
 
-        $this->assertInstanceOf(BelongsToMany::class, $user->permissions());
-        $this->assertContains($permissionPostStore->id, $user->permissions()->pluck('id'));
+        $this->assertInstanceOf(BelongsToMany::class, $user->permissions($workspace));
+        $this->assertContains($permissionPostStore->id, $user->permissions($workspace)->pluck('id'));
     }
 
     public function testUserPermissionsForResource()
@@ -35,7 +55,7 @@ class HasPermissionTest extends TestCase
         $user = $this->create(User::class);
 
         $permissionPostStore = Permission::create([
-            'name' => 'create.post'
+            'name' => 'post.store'
         ]);
 
         $otherWorkspace = Workspace::create(['name' => 'Other Workspace']);
@@ -54,6 +74,28 @@ class HasPermissionTest extends TestCase
     }
 
     public function testUserHasPermissions()
+    {
+        $user = $this->create(User::class);
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        Permission::create(['name' => 'post.update']);
+
+        DB::table('permission_user')->insert([
+            'user_id' => $user->id,
+            'permission_id' => $permissionPostStore->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        $this->assertTrue($user->hasPermission('post.store'));
+        $this->assertTrue($user->hasPermission('post.update|post.store'));
+        $this->assertTrue($user->hasPermission($permissionPostStore));
+        $this->assertFalse($user->hasPermission('post.update'));
+        $this->assertFalse($user->hasPermission('post.update'));
+    }
+
+    public function testUserHasPermissionsWithResource()
     {
         $user = $this->create(User::class);
 
@@ -107,6 +149,26 @@ class HasPermissionTest extends TestCase
     }
 
     public function testUserAttachPermissionWithInstance()
+    {
+        $user = $this->create(User::class);
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        $user->attachPermission($permissionPostStore);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->attachPermission([0]);
+    }
+
+    public function testUserAttachPermissionWithInstanceAndResource()
     {
         $user = $this->create(User::class);
 
@@ -220,6 +282,42 @@ class HasPermissionTest extends TestCase
 
         $permissionPostUpdate = Permission::create(['name' => 'admin']);
 
+        DB::table('permission_user')->insert([
+            'user_id' => $user->id,
+            'permission_id' => $permissionPostUpdate->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        $user->syncPermissions([$permissionPostStore, $permissionPostUpdate]);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        $this->assertDatabaseHas('permission_user', [
+            'permission_id' => $permissionPostUpdate->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        $this->expectException(ModelNotFoundException::class);
+
+        $user->syncPermissions([0]);
+    }
+
+    public function testUserSyncPermissionsWithInstanceAndResource()
+    {
+        $user = $this->create(User::class);
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        $permissionPostUpdate = Permission::create(['name' => 'admin']);
+
         $workspace = Workspace::create(['name' => 'Workspace']);
 
         DB::table('permission_user')->insert([
@@ -296,6 +394,55 @@ class HasPermissionTest extends TestCase
 
         $permissionPostUpdate = Permission::create(['name' => 'post.update']);
 
+        DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostUpdate->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        $otherWorkspace = Workspace::create(['name' => 'Workspace']);
+
+        DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+
+        $user->detachPermissions([$permissionPostStore->id, $permissionPostUpdate->id]);
+
+        $this->assertDatabaseMissing('permission_user', [
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        $this->assertDatabaseMissing('permission_user', [
+            'permission_id' => $permissionPostUpdate->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+    }
+
+    public function testUserDetachPermissionsWithResource()
+    {
+        $user = $this->create(User::class);
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        $permissionPostUpdate = Permission::create(['name' => 'post.update']);
+
         $workspace = Workspace::create(['name' => 'Workspace Name']);
 
         DB::table('permission_user')->insert([
@@ -347,6 +494,31 @@ class HasPermissionTest extends TestCase
     }
 
     public function testUserHasPermissionUniqueInDatabase()
+    {
+        $this->markTestSkipped();
+        
+        $user = $this->create(User::class);
+
+        $permissionPostStore = Permission::create(['name' => 'post.store']);
+
+        DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+
+        $this->expectException(\PDOException::class);
+
+        DB::table('permission_user')->insert([
+            'permission_id' => $permissionPostStore->id,
+            'user_id' => $user->id,
+            'resource_id' => null,
+            'resource_type' => null
+        ]);
+    }
+
+    public function testUserHasPermissionUniqueInDatabaseWithResource()
     {
         $user = $this->create(User::class);
 

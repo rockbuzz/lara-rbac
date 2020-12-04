@@ -31,6 +31,15 @@ class TestCase extends OrchestraTestCase
     protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('database.default', 'testing');
+        /*
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('database.connections.testing', [
+            'driver'   => 'mysql',
+            'host'   => 'dbtest',
+            'database' => 'testing',
+            'username'   => 'testing',
+            'password' => 'secret'
+        ]);*/
     }
 
 

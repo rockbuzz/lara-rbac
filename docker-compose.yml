@@ -8,3 +8,12 @@ services:
     restart: always
     volumes:
       - ./:/var/www
+  dbtest:
+    container_name: db_test
+    image: mariadb:10.3
+    tmpfs: /var/lib/mysql
+    environment:
+      - "MYSQL_ROOT_PASSWORD=root"
+      - "MYSQL_DATABASE=testing"
+      - "MYSQL_USER=testing"
+      - "MYSQL_PASSWORD=secret"

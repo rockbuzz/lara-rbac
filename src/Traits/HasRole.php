@@ -19,11 +19,11 @@ trait HasRole
         return $this->belongsToMany(Role::class)
                 ->wherePivot(
                     'resource_id', 
-                    !$resource ? $resource : $resource->id
+                    $resource ? $resource->id : $resource
                 )
                 ->wherePivot(
                     'resource_type', 
-                    !$resource ? $resource : get_class($resource)
+                    $resource ? get_class($resource) : $resource
                 )
                 ->withPivot([
                     'resource_id',
@@ -34,7 +34,7 @@ trait HasRole
     /**
      * @inheritdoc
      */
-    public function hasRole($role, Model $resource): bool
+    public function hasRole($role, Model $resource = null): bool
     {
         $role = is_a($role, Role::class) ? $role->name : $role;
 
@@ -46,7 +46,7 @@ trait HasRole
     /**
      * @inheritdoc
      */
-    public function attachRole($role, Model $resource): void
+    public function attachRole($role, Model $resource = null): void
     {
         if (is_array($role)) {
             $this->attachRoles($role, $resource);
@@ -57,8 +57,8 @@ trait HasRole
 
             $this->roles($resource)->attach([
                 $role->id => [
-                    'resource_id' => $resource->id,
-                    'resource_type' => get_class($resource)
+                    'resource_id' => $resource ? $resource->id : $resource,
+                    'resource_type' => $resource ? get_class($resource) : $resource
                 ]
             ]);
         }
@@ -67,7 +67,7 @@ trait HasRole
     /**
      * @inheritdoc
      */
-    public function syncRoles(array $roles, Model $resource): void
+    public function syncRoles(array $roles, Model $resource = null): void
     {
         $data = [];
 
@@ -81,18 +81,18 @@ trait HasRole
     /**
      * @inheritdoc
      */
-    public function detachRoles(array $roles, Model $resource): void
+    public function detachRoles(array $roles, Model $resource = null): void
     {
         $this->roles($resource)->detach($roles);
     }
 
     /**
      * @param Role[]|int[] $roles
-     * @param Model $resource
+     * @param Model|null $resource
      * @throws ModelNotFoundException
      * @return void
      */
-    private function attachRoles(array $roles, Model $resource): void
+    private function attachRoles(array $roles, Model $resource = null): void
     {
         $data = [];
 
@@ -109,15 +109,15 @@ trait HasRole
      * @param array $data
      * @return array
      */
-    private function mountDataForRole($role, Model $resource, array $data): array
+    private function mountDataForRole($role, Model $resource = null, array $data): array
     {
         $role = is_a($role, Role::class) ?
             $role :
             resolve(Role::class)::findOrFail($role);
 
         $data[$role->id] = [
-            'resource_id' => $resource->id,
-            'resource_type' => get_class($resource)
+            'resource_id' => $resource ? $resource->id : $resource,
+            'resource_type' => $resource ? get_class($resource) : $resource
         ];
         return $data;
     }
